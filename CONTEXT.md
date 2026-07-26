@@ -23,29 +23,45 @@ _Avoid_: adapter (use only as a sub-component), loader, packager
 **Review (审查)**:
 The horizontal concern that intercepts every task and governs the skill library. Two scopes:
 - *Per-task*: three sub-types — Code Review (product view, soft gate), Task Recheck (goal view, soft gate), Security Review (risk view, reflection gate + extreme-risk hard gate). Triggered at input / process / output points of every task.
-- *Per-skill*: Lifecycle Governance — review, merge, split, retire skills. The meta-governance role no major public skill ecosystem abstracts as a first-class skill.
-_Avoid_: auditor, quality gate
+- *Per-skill*: Lifecycle Governance — review, merge, split, retire skills. The meta-governance role no major public skill ecosystem abstracts as a first-class module; MY_SKILL treats it as part of Review.
+_Avoid_: validation, audit, verification, quality-check
 
-**thinking-first**:
-Pre-route cognitive discipline. 5 rules: (1) truly understand intent, (2) anchor factual claims to sources, (3) declare uncertainty honestly, (4) verify against requirements before delivering, (5) do only what was asked — no scope creep.
-_Avoid_: cognitive checklist, pre-flight check
+**Thinking-First (思考纪律)**:
+A horizontal discipline skill force-triggered by Distributor **pre-route** (before any task routes). Enforces 5 cognitive rules: understand the task / source-anchor every fact / honestly mark uncertainty / pre-delivery self-check / minimal intervention. Cannot be /slash-called directly.
+_Avoid_: self-check, sanity-check (these are softer, less structured)
 
-**caveman**:
-Two trigger points: pre-think constrains the model's thinking block to ≤5 short points; post-output compresses residual verbosity from the final output. The per-turn equivalent of an editor that cuts fluff.
-_Avoid_: compress, shorten, trim
+**Caveman (思考约束 + 输出压缩)**:
+A horizontal discipline + compression skill force-triggered by Distributor at **two** points: (1) **pre-think** (after thinking-first, before routing) — constrains the model's *thinking itself* to 3-5 short points (each ≤10 words), preventing verbose thought generation rather than post-deleting; (2) **post-output** (after Domain skill) — compresses residual verbosity in the final output. Pre-think is the primary lever (it affects AI thought); post-output is the safety net. Cannot be /slash-called directly.
+_Avoid_: summarize, shorten (these are softer, no discipline; caveman constrains thinking, not just output)
 
-**grill-with-docs**:
-Triggered when Distributor detects a task gap (no matching skill found). Interrogates the user about design intent (what should the missing skill do), then writes a new ADR + glossary entry. The design-to-docs pipeline.
-_Avoid_: gap handler, design interrogator
+**Grill-With-Docs (设计拷问 + ADR 落地)**:
+A horizontal design-interrogation skill force-triggered by Distributor **on-gap** (when match_score < threshold, OR task is design/planning). Runs relentless one-question-at-a-time interrogation, lands each decision as an ADR, and updates the glossary. Cannot be /slash-called directly.
+_Avoid_: brainstorm, design-thinking (these are softer, no ADR discipline)
 
-## The Five LLM Capabilities
+**Capability (能力)**:
+A category in the domain layer corresponding to a core LLM capability. Five categories: Understanding, Generation, Retrieval, Execution, Decision. Generation includes both implementation skills (`generate-api`, `generate-doc`) and design-specification skills (`api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`).
+_Avoid_: domain, category, area
 
-| Category | What it covers | Seed skills |
-|---|---|---|
-| **Understanding** | Read input, parse context, recognize intent | comprehend-code, comprehend-doc |
-| **Generation** | Produce output — code, docs, contracts, architecture, schemas, visual specs | generate-api, generate-doc, api-design, system-design, database-design, ui-design, ux-design, writing-great-skills, handoff, teach |
-| **Retrieval** | Find information, query data, call APIs (incl. analysis) | retrieve-rag, retrieve-sql |
-| **Execution** | Run commands, manipulate files, invoke tools | execute-bash, execute-git |
-| **Decision** | Plan, choose, weigh tradeoffs (incl. analysis) | decide-invest, decide-product |
+**Reflection Gate (反射门禁)**:
+A security review pattern where detected risks are injected back into system context, forcing the model to explicitly process (fix / explain / refuse) them before continuing. Does not directly block flow but cannot be silently ignored.
+_Avoid_: soft block, advisory, warning
 
-**Governance** (lifecycle management) belongs to Review (horizontal), not to Domain — maintaining a clean separation of concerns.
+**B-Chain (B 链式)**:
+The trigger relationship among the four verticals. `Distributor → Domain` (with Review as horizontal). When Distributor detects a gap (no matching skill), it triggers Builder to create a new skill, which is registered and routed back through Distributor.
+_Avoid_: pipeline, sequential flow, waterfall
+
+**Seed (种子技能)**:
+A pre-built skill in the MVP that demonstrates the architecture and provides initial coverage for common tasks. The B-Chain grows the library beyond seeds via gap-triggered creation.
+_Avoid_: starter, template, example
+
+**INDEX.yaml**:
+A lightweight lookup file inside Distributor, listing every skill's `name + risk_level + capability_category + status`. Used for fast routing. Not a separate registry module — frontmatter and Review own the other metadata.
+_Avoid_: registry, catalog, manifest
+
+**Soft Gate (软门禁)**:
+A review pattern that emits advisory output without blocking flow. Used by Code Review and Task Recheck. The model may proceed with the advisory unaddressed.
+_Avoid_: warning, suggestion
+
+**Hard Gate (硬门禁)**:
+A review pattern that blocks flow until the risk is resolved. Used only at the extreme-risk tier of Security Review.
+_Avoid_: blocker, hard stop

@@ -32,4 +32,4 @@ All 4 are `user-invocable: false`; they cannot be /slash-called directly. Distri
 
 ## Local-first development
 
-This repository is built locally first; do not assume the GitHub remote is up to date. When contributing, check `git log` and `git diff` to understand the current state before making changes.
+This repository is built locally first; do not assume the GitHub remote is up to date.

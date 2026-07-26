@@ -1,0 +1,41 @@
+# OS / Editor
+.DS_Store
+.Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs / Temp
+*.log
+*.tmp
+.cache/
+
+# WorkBuddy / agent cache
+.workbuddy/cache/
+.workbuddy/scratch/
+
+# Skill development scratch (per-skill working drafts)
+domain/**/scratch/
+domain/**/.scratch/
+meta/**/scratch/
+
+# Local-only files (not for GitHub)
+.env
+.env.local
+secrets/

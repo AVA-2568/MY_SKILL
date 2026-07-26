@@ -90,7 +90,7 @@ MY_SKILL/
 ├── meta/                    # 8 metadata modules (4V + 1H layer)
 │   ├── distributor/         # vertical: route + risk-score + gap-detect (force-triggers horizontal layer)
 │   │   ├── SKILL.md
-│   │   └── INDEX.yaml       # 23-skill registry + routing config + lifecycle governance
+│   │   └── INDEX.yaml       # 26-skill registry (8 meta + 18 domain) + routing config + lifecycle governance
 │   ├── builder/             # vertical: confirm → plan → generate
 │   ├── installer/           # vertical: adapters/ + bootstrap/
 │   │   ├── adapters/        # per-platform translation (workbuddy/codex/hermes)
