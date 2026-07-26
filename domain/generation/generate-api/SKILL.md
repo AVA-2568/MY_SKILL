@@ -1,6 +1,6 @@
 ---
 name: generate-api
-description: Generate runnable API code (routes, handlers, middleware, controllers) in a target framework (Express, FastAPI, etc.) from a design contract (OpenAPI, GraphQL schema, or natural language). Use when the user has a design ready and wants implementation code — typically after `api-design` or `database-design`. Triggers: "build the API from this spec", "implement the endpoints from the OpenAPI doc", "generate the route handlers", "convert the design to code".
+description: Generate a REST/GraphQL API endpoint from a specification. Use when the user wants to add a new API endpoint, scaffold a CRUD resource, or generate a service stub. Triggers: "create an API endpoint for X", "add a CRUD for X", "scaffold the resource", "generate a service for X".
 user-invocable: true
 risk_level: low
 category: generation
@@ -8,33 +8,31 @@ category: generation
 
 # Generate API (生成 API)
 
-Generate runnable API code from a design contract.
+Generate a backend API endpoint from a specification.
 
 ## When to Use
 
-- User has a design (OpenAPI, GraphQL schema, resource model) and wants implementation
-- User asks to scaffold a new API endpoint or route
-- User wants automatic handler generation from a spec
-
-Do NOT use for designing the API contract itself — route to `api-design` instead.
+- User wants to add a new API endpoint
+- User asks to scaffold a CRUD resource
+- User wants a service stub
 
 ## Procedure (skeleton — Builder will expand)
 
-1. Identify the target framework and language from context
-2. Parse the design contract (OpenAPI / GraphQL SDL / natural language)
-3. Generate route registration and handler skeletons
-4. Generate request validation (from schema constraints)
-5. Generate error handling (standard envelope)
-6. Output: ready-to-run code files
+1. Identify framework (Express, FastAPI, Spring, etc.)
+2. Identify data model (entity, fields, relationships)
+3. Identify operations (CRUD / custom actions)
+4. Generate: route definitions + handler functions + request/response schemas
+5. Generate: validation + error handling
+6. Generate: tests
 
 ## Pitfalls
 
-- Don't generate business logic; only scaffold structure
-- Respect framework conventions (middleware ordering, error handling patterns)
-- Don't reinvent auth — use framework-standard auth middleware
+- Don't skip auth/authz if the resource is sensitive
+- Match the existing project's naming and style conventions
+- For multi-step generation, generate one piece at a time so the user can review
 
 ## Verification
 
-- Every endpoint from the design is implemented
-- Request validation matches schema constraints (types, required fields)
-- Error responses follow the design contract's envelope format
+- Generated endpoint handles all requested operations
+- Validation rejects invalid input with clear error messages
+- Tests cover happy path + common error cases
