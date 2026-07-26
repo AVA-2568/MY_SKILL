@@ -1,37 +1,37 @@
 ---
 name: retrieve-sql
-description: Retrieve information from a SQL database — write and execute SELECT queries, explore schema, and visualize query results. Use when the user asks to query a database, explore table structures, or generate reports from relational data. Triggers: "query the database for X", "what's in the Y table", "run a SELECT to find Z", "show me the schema".
+description: Generate and execute a SQL query against a relational database. Use when the user asks a data question best answered by SQL. Triggers: "how many users signed up last week", "show me the top 10 customers by revenue", "what's the average X by Y".
 user-invocable: true
 risk_level: mid
 category: retrieval
 ---
 
-# Retrieve SQL (检索 SQL)
+# Retrieve SQL (SQL 检索)
 
-Retrieve information from a SQL database.
+Generate and execute a SQL query against a relational database.
 
 ## When to Use
 
-- User asks to query a database
-- User wants to explore table structures or relationships
-- User asks for a report or data extract from a relational DB
+- User asks a data question best answered by SQL
+- User asks for an aggregate, a join, or a specific slice of data
 
 ## Procedure (skeleton — Builder will expand)
 
-1. Identify the database connection (connection string, ORM, or existing client)
-2. Explore schema: list tables, describe columns, check relationships
-3. Construct the SELECT query (use EXPLAIN for complex queries)
-4. Execute read-only (never UPDATE/DELETE/DROP without explicit confirmation)
-5. Format and present results
+1. Identify the database and connection
+2. Inspect the schema (table list, column types, indexes)
+3. Draft the query
+4. Dry-run (EXPLAIN) for performance sanity
+5. Execute
+6. Return rows + interpretation
 
 ## Pitfalls
 
-- NEVER run write operations (INSERT/UPDATE/DELETE/DROP/TRUNCATE) without explicit user confirmation
-- Use parameterized queries to prevent SQL injection
-- Limit result sets (add LIMIT) for large tables
+- For destructive queries (DROP / DELETE / UPDATE), require explicit user confirmation
+- For large result sets, paginate or aggregate before returning
+- For ambiguous schema (similar column names across tables), ask the user
 
 ## Verification
 
-- Only SELECT queries executed (unless write permission explicitly granted)
-- Query uses parameterized inputs (no string interpolation)
-- Results are complete and correctly formatted
+- Query returns the expected columns
+- Row count is sane (not zero when it shouldn't be, not millions when it shouldn't be)
+- Execution time is reasonable (under 5s for typical queries)

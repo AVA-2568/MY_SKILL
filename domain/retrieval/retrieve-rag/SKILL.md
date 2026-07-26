@@ -1,37 +1,37 @@
 ---
 name: retrieve-rag
-description: Retrieve information from a RAG (Retrieval-Augmented Generation) knowledge base — vector stores, document collections, or indexed wikis. Use when the user asks to query a knowledge base, find relevant documents, or search through indexed content. Triggers: "search the knowledge base for X", "what does the documentation say about Y", "find documents related to Z".
+description: Retrieval-Augmented Generation over a local knowledge base. Use when the user asks a question that requires grounding in their documents, notes, or local files. Triggers: "search my notes for X", "what do my docs say about Y", "find references to Z in my knowledge base".
 user-invocable: true
 risk_level: low
 category: retrieval
 ---
 
-# Retrieve RAG (检索 RAG)
+# Retrieve RAG (检索增强)
 
-Retrieve information from a RAG knowledge base.
+RAG query over the user's local knowledge base.
 
 ## When to Use
 
-- User asks to query a knowledge base or document store
-- User wants to find relevant documents in an indexed collection
-- User asks "what does the docs/wiki/knowledge base say about X"
+- User asks a question that requires their documents
+- User asks "what do my notes say about X"
+- User asks to find references across a corpus
 
 ## Procedure (skeleton — Builder will expand)
 
-1. Identify the knowledge base and its access method (API, local index, etc.)
-2. Construct the query (natural language or structured)
-3. Retrieve top-k results
-4. Filter and rank by relevance
-5. Synthesize answer from retrieved chunks, citing sources
+1. Identify the knowledge base (path / index location)
+2. Embed the user's query
+3. Retrieve top-k relevant chunks
+4. Optionally re-rank
+5. Synthesize an answer with citations
 
 ## Pitfalls
 
-- Don't fabricate results; if nothing relevant is found, say so
-- Cite the source chunk, not just the document name
-- Respect the retrieval limit — don't claim exhaustive search if only top-k were retrieved
+- Don't retrieve without first checking the index is current
+- Cite source paths/sections for every claim
+- If retrieved context is empty, say so explicitly — don't hallucinate
 
 ## Verification
 
-- Retrieved chunks are directly relevant to the query
-- Sources are cited (document + chunk location)
-- Confidence is stated (how much of the answer comes from retrieval vs. model knowledge)
+- Answer is grounded in retrieved chunks
+- Citations are accurate (point to actual source paths)
+- Confidence is calibrated (low confidence → say "I don't know")
