@@ -1,46 +1,45 @@
 ---
 name: domain-entry
-description: Domain layer entry point — list, search, and dispatch to skills in the five LLM capability categories. Use when the Distributor has matched a category but the agent needs to locate the specific skill. Not user-invocable; loaded on-demand by Distributor.
-user-invocable: false
+description: Overview of the 5 LLM-capability categories in the domain layer (Understanding / Generation / Retrieval / Execution / Decision). Use when the user wants to browse the skill library, asks "what skills do you have", or is uncertain which category fits their need.
+user-invocable: true
 risk_level: low
-category: meta
-agent_created: true
 ---
 
 # Domain Entry (领域入口)
 
-Domain layer entry point. Navigates the five LLM capability categories to locate specific skills.
+5 LLM-capability categories. Use to browse the library or to understand which category a task belongs to.
 
-## When This Triggers
+## Categories
 
-Distributor loads Domain-entry when:
-- A task has been classified into a capability category
-- The Distributor needs to locate the specific skill within that category
+| Category | Meaning | Use for |
+|---|---|---|
+| **Understanding** | Read input, parse context, recognize intent | "Read this code and tell me what it does" / "Parse this JSON" |
+| **Generation** | Produce output: code, documents, interface contracts, architecture, schemas, visual specifications | "Write an API endpoint" / "Design an API" / "Design a system" / "Create a UI spec" |
+
+Generation contains implementation-oriented skills (`generate-api`, `generate-doc`), design-oriented skills (`api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`), and productivity-oriented skills forked from mattpocock/skills (`writing-great-skills`, `handoff`, `teach`). Design skills produce contracts and specifications; implementation skills turn specifications into artifacts; productivity skills support the user across sessions.
+| **Retrieval** | Find information, query data, call APIs (incl. analysis) | "Search for X" / "Query the database" / "Analyze this data" |
+| **Execution** | Run commands, manipulate files, invoke tools | "Run the test suite" / "Deploy this" |
+| **Decision** | Plan, choose, weigh tradeoffs (incl. analysis) | "Should we invest in X?" / "Pick between A and B" |
+
+## Trigger
+
+- **Manual**: `/domain` to list all categories; `/domain <category>` to list skills in a category.
+- **Auto**: Distributor may call this when a user request is broad and needs category clarification.
 
 ## Procedure
 
-1. Receive the capability category and task description from Distributor.
-2. Scan the `domain/<category>/` directory for matching skills.
-3. Score each skill by description relevance to the task.
-4. Return the top match (or "no match" if none above threshold).
-
-## Category Map
-
-| Category | Directory | Seed Skills |
-|---|---|---|
-| understanding | `domain/understanding/` | comprehend-code, comprehend-doc |
-| generation | `domain/generation/` | generate-api, generate-doc, api-design, system-design, database-design, ui-design, ux-design, writing-great-skills, handoff, teach |
-| retrieval | `domain/retrieval/` | retrieve-rag, retrieve-sql |
-| execution | `domain/execution/` | execute-bash, execute-git |
-| decision | `domain/decision/` | decide-invest, decide-product |
+1. If user asks for a category overview: list skills in that category from INDEX.yaml.
+2. If user asks "which category fits X": analyze the task and recommend a primary category.
+3. If user picks a category, list skills; user picks a skill; route to it via Distributor.
 
 ## Pitfalls
 
-- Don't return a low-relevance match just to avoid "no match"; gap detection triggers the Builder.
-- Don't hardcode the category list; derive it from the filesystem (future-proof for new categories).
+- **Don't bypass Distributor**: Domain-entry is for browsing; actual routing should go through Distributor's risk-score + match logic.
+- **Category overlap**: Some tasks span multiple categories (e.g., "Write a function and test it" = Generation + Execution). Recommend the primary category; the secondary is implicit.
+- **Stale listings**: Always read INDEX.yaml fresh; do not cache category listings across sessions.
 
 ## Verification
 
-- The returned skill genuinely matches the task (not a forced fit).
-- "No match" is returned when no skill scores above threshold.
-- The search covers all skills in the category directory.
+- A category listing must match INDEX.yaml (no orphaned entries).
+- A category recommendation should include 1-2 specific skills in that category.
+- Routing to a specific skill must still go through Distributor (not directly from Domain-entry).

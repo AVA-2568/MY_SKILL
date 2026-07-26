@@ -32,3 +32,11 @@ Creates new skills on demand. Triggered by Distributor when no existing skill ma
 
 - **Premature generation**: Do not write the SKILL.md before `plan` is approved (or at least before the design feels coherent).
 - **Bundled resource bloat**: Skills with too many scripts/references are hard to maintain; keep bundled resources minimal.
+- **Frontmatter incompleteness**: `risk_level`, `category`, and `user_invocable` must all be set; otherwise Distributor cannot route correctly.
+- **Category misclassification**: Skills that span multiple LLM capabilities should pick the *primary* capability in `category:`; document the secondary in the SKILL.md body.
+
+## Verification
+
+- After generation, the new skill must be routable: re-run Distributor's matching against INDEX.yaml; the new skill must appear and match the original task.
+- The new skill must have at least one bundled resource (or be explicitly documented as "no resources needed").
+- INDEX.yaml must reflect the new skill before generation is considered complete.
