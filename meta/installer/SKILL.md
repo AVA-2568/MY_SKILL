@@ -13,7 +13,7 @@ Two sub-modules. **Not on the B-Chain runtime path**; runs when skills enter or 
 
 ### `adapters/`
 
-Per-platform translation. Three adapters: workbuddy / codex / hermes.
+Per-platform translation. Three adapters: workbuddy / codex / hermes. **Implemented as `adapters/workbuddy.yaml`, `adapters/codex.yaml`, `adapters/hermes.yaml`** — each file holds the exact field mapping below.
 
 For each platform, map MY_SKILL's extension fields to the platform's expected format:
 
@@ -28,7 +28,7 @@ For each platform, map MY_SKILL's extension fields to the platform's expected fo
 
 ### `bootstrap/`
 
-Session activation. On session start:
+**Implemented as `bootstrap/SKILL.md`.** Session activation. On session start:
 1. Verify Distributor is `user-invocable: false` and always-loaded.
 2. Verify all other skills remain on-demand.
 3. Verify INDEX.yaml matches the actual `domain/` + `meta/` directory contents; rebuild if drift detected.
@@ -43,6 +43,18 @@ Session activation. On session start:
 ## Procedure (sync)
 
 1. Read INDEX.yaml to get the canonical skill list.
-2. For each skill, run each platform adapter.
-3. Write the translated files to the appropriate platform directories.
-4. Update any platform metadata (e.g., codex's skill registry).
+2. For each skill, run each platform's adapter; write the platform-specific output to the platform's skill directory.
+3. Verify by listing each platform's installed skills; report any mismatch.
+
+## Pitfalls
+
+- **Field drift**: Platform SKILL.md field names change between platform versions; pin to a known version.
+- **Index staleness**: INDEX.yaml can drift from actual `domain/` directory; the bootstrap pass should detect this and rebuild.
+- **Cross-platform divergence**: A feature MY_SKILL adds (e.g., new frontmatter field) won't appear on platforms that don't support it; the adapter must translate or document the gap.
+- **Network safety**: Installing to remote platforms may need credentials; never embed secrets in the adapter output.
+
+## Verification
+
+- After sync, each platform's skill directory should contain the same set of skills as INDEX.yaml.
+- After bootstrap, the session should have Distributor loaded and INDEX.yaml readable.
+- Any drift between INDEX.yaml and filesystem must be reported and resolved before continuing.

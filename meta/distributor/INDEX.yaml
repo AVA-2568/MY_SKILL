@@ -6,7 +6,7 @@
 
 skills:
 
-  # === Meta layer (5 modules) ===
+  # === Meta layer (8 modules: 4 verticals + 4 horizontal components) ===
 
   - name: distributor
     category: meta
@@ -30,6 +30,14 @@ skills:
     risk_level: mid
     user_invocable: true
     path: meta/installer
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: installer-bootstrap
+    category: meta
+    risk_level: low
+    user_invocable: false
+    path: meta/installer/bootstrap
     status: active
     last_reviewed: 2026-07-26
 
@@ -79,15 +87,14 @@ skills:
     last_reviewed: 2026-07-26
 
   # === Domain layer (18 seed skills: 2 understanding + 10 generation + 2 retrieval + 2 execution + 2 decision) ===
-
-  # -- Understanding (2) --
+  # Generation includes 5 design skills + 3 productivity skills (mattpocock/skills fork: writing-great-skills/handoff/teach)
 
   - name: comprehend-code
     category: understanding
     risk_level: low
     user_invocable: true
     path: domain/understanding/comprehend-code
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: comprehend-doc
@@ -95,25 +102,15 @@ skills:
     risk_level: low
     user_invocable: true
     path: domain/understanding/comprehend-doc
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
-
-  # -- Generation (10) --
 
   - name: generate-api
     category: generation
     risk_level: low
     user_invocable: true
     path: domain/generation/generate-api
-    status: active
-    last_reviewed: 2026-07-26
-
-  - name: generate-doc
-    category: generation
-    risk_level: low
-    user_invocable: true
-    path: domain/generation/generate-doc
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: api-design
@@ -121,7 +118,7 @@ skills:
     risk_level: low
     user_invocable: true
     path: domain/generation/api-design
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: system-design
@@ -129,7 +126,7 @@ skills:
     risk_level: mid
     user_invocable: true
     path: domain/generation/system-design
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: database-design
@@ -137,7 +134,7 @@ skills:
     risk_level: mid
     user_invocable: true
     path: domain/generation/database-design
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: ui-design
@@ -145,7 +142,7 @@ skills:
     risk_level: low
     user_invocable: true
     path: domain/generation/ui-design
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: ux-design
@@ -153,41 +150,50 @@ skills:
     risk_level: low
     user_invocable: true
     path: domain/generation/ux-design
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
-  - name: handoff
+  - name: generate-doc
     category: generation
-    risk_level: mid
+    risk_level: low
     user_invocable: true
-    path: domain/generation/handoff
-    status: active
+    path: domain/generation/generate-doc
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: writing-great-skills
     category: generation
     risk_level: low
-    user_invocable: true
+    user_invocable: false
     path: domain/generation/writing-great-skills
-    status: active
+    status: seed
+    source: mattpocock/skills@productivity
+    last_reviewed: 2026-07-26
+
+  - name: handoff
+    category: generation
+    risk_level: mid
+    user_invocable: false
+    path: domain/generation/handoff
+    status: seed
+    source: mattpocock/skills@productivity
     last_reviewed: 2026-07-26
 
   - name: teach
     category: generation
     risk_level: mid
-    user_invocable: true
+    user_invocable: false
     path: domain/generation/teach
-    status: active
+    status: seed
+    source: mattpocock/skills@productivity
     last_reviewed: 2026-07-26
-
-  # -- Retrieval (2) --
 
   - name: retrieve-rag
     category: retrieval
     risk_level: low
     user_invocable: true
     path: domain/retrieval/retrieve-rag
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: retrieve-sql
@@ -195,17 +201,15 @@ skills:
     risk_level: mid
     user_invocable: true
     path: domain/retrieval/retrieve-sql
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
-
-  # -- Execution (2) --
 
   - name: execute-bash
     category: execution
     risk_level: mid
     user_invocable: true
     path: domain/execution/execute-bash
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: execute-git
@@ -213,17 +217,15 @@ skills:
     risk_level: mid
     user_invocable: true
     path: domain/execution/execute-git
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
-
-  # -- Decision (2) --
 
   - name: decide-invest
     category: decision
     risk_level: mid
     user_invocable: true
     path: domain/decision/decide-invest
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
 
   - name: decide-product
@@ -231,5 +233,21 @@ skills:
     risk_level: mid
     user_invocable: true
     path: domain/decision/decide-product
-    status: active
+    status: seed
     last_reviewed: 2026-07-26
+
+# === Routing configuration ===
+
+routing:
+  match_threshold: 50          # composite score below this triggers gap-detect
+  risk_penalty:
+    low: 0
+    mid: -10
+    high: -30
+
+# === Lifecycle governance (Review's per-skill scope) ===
+
+lifecycle:
+  stale_after_days: 180        # 6 months → re-review
+  overlap_threshold: 0.8      # 80% description match → recommend merge
+  retire_after_zero_usage_days: 90   # 3 months → retire candidate
