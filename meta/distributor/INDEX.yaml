@@ -1,0 +1,235 @@
+# INDEX.yaml — Distributor's fast-lookup index
+#
+# Format: list of skills with their key metadata for routing.
+# Read by: Distributor (every task), Review (lifecycle events).
+# Written by: Distributor (on new skill add), Review (on lifecycle event), Installer (on sync).
+
+skills:
+
+  # === Meta layer (5 modules) ===
+
+  - name: distributor
+    category: meta
+    risk_level: low
+    user_invocable: false
+    always_active: true
+    path: meta/distributor
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: builder
+    category: meta
+    risk_level: low
+    user_invocable: true
+    path: meta/builder
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: installer
+    category: meta
+    risk_level: mid
+    user_invocable: true
+    path: meta/installer
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: domain-entry
+    category: meta
+    risk_level: low
+    user_invocable: true
+    path: meta/domain-entry
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: review
+    category: meta
+    risk_level: low
+    user_invocable: false
+    always_active: true
+    horizontal: true
+    path: meta/review
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: thinking-first
+    category: meta
+    risk_level: low
+    user_invocable: false
+    forced_trigger: distributor-pre
+    path: meta/thinking-first
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: caveman
+    category: meta
+    risk_level: low
+    user_invocable: false
+    forced_trigger: distributor-pre-think + distributor-post-output
+    path: meta/caveman
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: grill-with-docs
+    category: meta
+    risk_level: low
+    user_invocable: false
+    forced_trigger: distributor-gap
+    path: meta/grill-with-docs
+    status: active
+    last_reviewed: 2026-07-26
+
+  # === Domain layer (18 seed skills: 2 understanding + 10 generation + 2 retrieval + 2 execution + 2 decision) ===
+
+  # -- Understanding (2) --
+
+  - name: comprehend-code
+    category: understanding
+    risk_level: low
+    user_invocable: true
+    path: domain/understanding/comprehend-code
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: comprehend-doc
+    category: understanding
+    risk_level: low
+    user_invocable: true
+    path: domain/understanding/comprehend-doc
+    status: active
+    last_reviewed: 2026-07-26
+
+  # -- Generation (10) --
+
+  - name: generate-api
+    category: generation
+    risk_level: low
+    user_invocable: true
+    path: domain/generation/generate-api
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: generate-doc
+    category: generation
+    risk_level: low
+    user_invocable: true
+    path: domain/generation/generate-doc
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: api-design
+    category: generation
+    risk_level: low
+    user_invocable: true
+    path: domain/generation/api-design
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: system-design
+    category: generation
+    risk_level: mid
+    user_invocable: true
+    path: domain/generation/system-design
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: database-design
+    category: generation
+    risk_level: mid
+    user_invocable: true
+    path: domain/generation/database-design
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: ui-design
+    category: generation
+    risk_level: low
+    user_invocable: true
+    path: domain/generation/ui-design
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: ux-design
+    category: generation
+    risk_level: low
+    user_invocable: true
+    path: domain/generation/ux-design
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: handoff
+    category: generation
+    risk_level: mid
+    user_invocable: true
+    path: domain/generation/handoff
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: writing-great-skills
+    category: generation
+    risk_level: low
+    user_invocable: true
+    path: domain/generation/writing-great-skills
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: teach
+    category: generation
+    risk_level: mid
+    user_invocable: true
+    path: domain/generation/teach
+    status: active
+    last_reviewed: 2026-07-26
+
+  # -- Retrieval (2) --
+
+  - name: retrieve-rag
+    category: retrieval
+    risk_level: low
+    user_invocable: true
+    path: domain/retrieval/retrieve-rag
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: retrieve-sql
+    category: retrieval
+    risk_level: mid
+    user_invocable: true
+    path: domain/retrieval/retrieve-sql
+    status: active
+    last_reviewed: 2026-07-26
+
+  # -- Execution (2) --
+
+  - name: execute-bash
+    category: execution
+    risk_level: mid
+    user_invocable: true
+    path: domain/execution/execute-bash
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: execute-git
+    category: execution
+    risk_level: mid
+    user_invocable: true
+    path: domain/execution/execute-git
+    status: active
+    last_reviewed: 2026-07-26
+
+  # -- Decision (2) --
+
+  - name: decide-invest
+    category: decision
+    risk_level: mid
+    user_invocable: true
+    path: domain/decision/decide-invest
+    status: active
+    last_reviewed: 2026-07-26
+
+  - name: decide-product
+    category: decision
+    risk_level: mid
+    user_invocable: true
+    path: domain/decision/decide-product
+    status: active
+    last_reviewed: 2026-07-26
