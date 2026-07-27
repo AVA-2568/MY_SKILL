@@ -1,6 +1,6 @@
 ---
 name: decide-product
-description: Product decision support — analyze a product decision (feature priority, A/B test result, roadmap trade-off) and produce a structured recommendation. Use when the user asks "should we build X", "which feature has higher priority", "is the A/B result conclusive". Triggers: "prioritize the roadmap", "evaluate feature X", "interpret the A/B result", "decide between X and Y".
+description: "Product decision support — analyze a product decision (feature priority, A/B test result, roadmap trade-off) and produce a structured recommendation. Use when the user asks \"should we build X\", \"which feature has higher priority\", \"is the A/B result conclusive\". Triggers: \"prioritize the roadmap\", \"evaluate feature X\", \"interpret the A/B result\", \"decide between X and Y\"."
 user-invocable: true
 risk_level: mid
 category: decision

@@ -1,6 +1,6 @@
 ---
 name: execute-git
-description: Execute git operations — status, diff, commit, branch, merge, rebase, push, pull. Use when the user asks to interact with a git repository. Triggers: "commit my changes", "create a branch for X", "merge Y into Z", "show me the diff", "push to origin".
+description: "Execute git operations — status, diff, commit, branch, merge, rebase, push, pull. Use when the user asks to interact with a git repository. Triggers: \"commit my changes\", \"create a branch for X\", \"merge Y into Z\", \"show me the diff\", \"push to origin\"."
 user-invocable: true
 risk_level: mid
 category: execution

@@ -1,6 +1,6 @@
 ---
 name: execute-bash
-description: Execute a bash command on the local or remote shell. Use when the user asks to run a shell command, script, or batch operation. Triggers: "run X", "execute Y", "shell into Z and do W".
+description: "Execute a bash command on the local or remote shell. Use when the user asks to run a shell command, script, or batch operation. Triggers: \"run X\", \"execute Y\", \"shell into Z and do W\"."
 user-invocable: true
 risk_level: mid
 category: execution

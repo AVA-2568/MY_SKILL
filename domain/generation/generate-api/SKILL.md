@@ -1,6 +1,6 @@
 ---
 name: generate-api
-description: Generate a REST/GraphQL API endpoint from a specification. Use when the user wants to add a new API endpoint, scaffold a CRUD resource, or generate a service stub. Triggers: "create an API endpoint for X", "add a CRUD for X", "scaffold the resource", "generate a service for X".
+description: "Generate a REST/GraphQL API endpoint from a specification. Use when the user wants to add a new API endpoint, scaffold a CRUD resource, or generate a service stub. Triggers: \"create an API endpoint for X\", \"add a CRUD for X\", \"scaffold the resource\", \"generate a service for X\"."
 user-invocable: true
 risk_level: low
 category: generation

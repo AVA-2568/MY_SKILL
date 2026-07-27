@@ -1,6 +1,6 @@
 ---
 name: decide-invest
-description: Investment decision support — analyze a potential investment (stock, fund, project) and produce a structured recommendation. Use when the user asks "should I invest in X" or "is Y a good buy". Triggers: "analyze this stock", "should I buy X", "is Y overvalued", "compare Z with W".
+description: "Investment decision support — analyze a potential investment (stock, fund, project) and produce a structured recommendation. Use when the user asks \"should I invest in X\" or \"is Y a good buy\". Triggers: \"analyze this stock\", \"should I buy X\", \"is Y overvalued\", \"compare Z with W\"."
 user-invocable: true
 risk_level: mid
 category: decision

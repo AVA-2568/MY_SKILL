@@ -1,6 +1,6 @@
 ---
 name: api-design
-description: Design a REST or GraphQL API contract before any code is written. Use when the user wants to define resources, endpoints, request/response schemas, auth, pagination, errors, idempotency, rate limits, versioning, or emit an OpenAPI/GraphQL SDL artifact. Triggers: "design an API for X", "draft an OpenAPI spec for Y", "define the resource model and endpoints", "spec the REST contract for Z", "model the API surface for W", "write the GraphQL schema".
+description: "Design a REST or GraphQL API contract before any code is written. Use when the user wants to define resources, endpoints, request/response schemas, auth, pagination, errors, idempotency, rate limits, versioning, or emit an OpenAPI/GraphQL SDL artifact. Triggers: \"design an API for X\", \"draft an OpenAPI spec for Y\", \"define the resource model and endpoints\", \"spec the REST contract for Z\", \"model the API surface for W\", \"write the GraphQL schema\"."
 user-invocable: true
 risk_level: low
 category: generation

@@ -1,6 +1,6 @@
 ---
 name: generate-doc
-description: Generate a structured document — report, README, proposal, design doc, or template. Use when the user asks for a new document with a specific structure. Triggers: "write a README for X", "draft a proposal for Y", "create a design doc for Z", "generate a report on W".
+description: "Generate a structured document — report, README, proposal, design doc, or template. Use when the user asks for a new document with a specific structure. Triggers: \"write a README for X\", \"draft a proposal for Y\", \"create a design doc for Z\", \"generate a report on W\"."
 user-invocable: true
 risk_level: low
 category: generation

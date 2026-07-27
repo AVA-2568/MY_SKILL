@@ -1,6 +1,6 @@
 ---
 name: database-design
-description: Design a safe, query-aware database schema from business entities, access patterns, consistency needs, and operational constraints. Use whenever the user asks for database design, schema design, table modeling, ERD, indexing, query optimization, data partitioning, multi-tenancy, migration planning, backups, or relational-versus-document tradeoffs—even if they only say "design the data model." Produce a reviewable schema specification before SQL execution; do not silently run migrations or modify a database.
+description: "Design a safe, query-aware database schema from business entities, access patterns, consistency needs, and operational constraints. Use whenever the user asks for database design, schema design, table modeling, ERD, indexing, query optimization, data partitioning, multi-tenancy, migration planning, backups, or relational-versus-document tradeoffs—even if they only say \"design the data model.\" Produce a reviewable schema specification before SQL execution; do not silently run migrations or modify a database."
 user-invocable: true
 agent_created: true
 risk_level: mid
