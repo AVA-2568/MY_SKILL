@@ -1,6 +1,6 @@
 ---
 name: review
-description: Horizontal review layer intercepting every task. Two scopes — per-task (Code Review / Task Recheck / Security Review with Reflection Gate) and per-skill (Lifecycle Governance: review / merge / split / retire). Always-active; runs on every task and on every library lifecycle event. Cross-cutting concern, not a peer of on-demand skills.
+description: "Horizontal review layer intercepting every task. Two scopes — per-task (Code Review / Task Recheck / Security Review with Reflection Gate) and per-skill (Lifecycle Governance: review / merge / split / retire). Always-active; runs on every task and on every library lifecycle event. Cross-cutting concern, not a peer of on-demand skills."
 user-invocable: false
 risk_level: low
 always_active: true

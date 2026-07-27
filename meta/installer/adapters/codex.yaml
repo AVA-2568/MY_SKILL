@@ -21,9 +21,9 @@ extension_fields:
     target: metadata.category
   user_invocable_false:
     native: true
-    target: disable-model-invocation: true      # Codex native field
+    target: "disable-model-invocation: true"      # Codex native field
   always_active:
     note: achieved by disable-model-invocation:true + session injection of distributor
 
 horizontal_layer:
-  field: disable-model-invocation: true
+  field: "disable-model-invocation: true"

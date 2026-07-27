@@ -1,6 +1,6 @@
 ---
 name: installer-bootstrap
-description: Session-activation sub-module of Installer. Verifies Distributor is always-loaded and INDEX.yaml matches the filesystem; rebuilds on drift.
+description: "Session-activation sub-module of Installer. Verifies Distributor is always-loaded and INDEX.yaml matches the filesystem; rebuilds on drift."
 user-invocable: false
 risk_level: low
 ---

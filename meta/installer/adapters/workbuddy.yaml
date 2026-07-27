@@ -21,7 +21,7 @@ extension_fields:
     target: metadata.category
   user_invocable_false:
     native: true
-    target: disable-model-invocation: true      # WorkBuddy native field
+    target: "disable-model-invocation: true"      # WorkBuddy native field
   always_active:
     note: achieved by user-invocable:false + session injection of distributor
 
@@ -29,4 +29,4 @@ horizontal_layer:
   note: >
     thinking-first / caveman / grill-with-docs / review are user-invocable:false
     and force-triggered by distributor; they cannot be /slash-called.
-  field: disable-model-invocation: true
+  field: "disable-model-invocation: true"
