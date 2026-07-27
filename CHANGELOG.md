@@ -13,8 +13,8 @@ First runnable skeleton — the MVP minimum viable library.
 - **ADRs**: 7 accepted architecture decision records (`docs/adr/0001`–`0007`) covering Q1–Q7.
 - **Meta modules**: 8 skills — `distributor`, `builder`, `installer` (+ `adapters` + `bootstrap`), `domain-entry`, `review`, `thinking-first`, `caveman`, `grill-with-docs`.
 - **Domain seeds**: 18 seed skills across 5 LLM capabilities — Understanding (2), Generation (10), Retrieval (2), Execution (2), Decision (2). Includes 3 productivity skills forked from `mattpocock/skills@productivity` (`writing-great-skills` / `handoff` / `teach`).
-- **Registry**: `meta/distributor/INDEX.yaml` registering 8 meta + 18 domain skills with routing thresholds and lifecycle governance.
-- **Docs**: `README.md` (architecture diagram), `CONTEXT.md`, `AGENTS.md` (agent read order), `GLOSSARY.md`.
+- **Registry**: `meta/distributor/INDEX.yaml` registering 8 meta modules + `installer-bootstrap` + 18 domain skills (27 total) with routing thresholds and lifecycle governance.
+- **Docs**: `README.md` (architecture diagram, English), `README.zh-CN.md` (中文版), `CONTEXT.md` (glossary), `AGENTS.md` (agent read order), `docs/INSTALL.md` (deploy guide).
 - **Repo meta**: `LICENSE` (MIT), `CHANGELOG.md`, `.github/workflows/validate.yaml` (frontmatter + YAML lint), `.github/SECURITY.md`, `CONTRIBUTING.md`.
 
 ### Fixed

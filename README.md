@@ -1,6 +1,20 @@
+> 中文版本: [README.zh-CN.md](./README.zh-CN.md)
+
+[![CI](https://github.com/AVA-2568/MY_SKILL/actions/workflows/validate.yaml/badge.svg)](https://github.com/AVA-2568/MY_SKILL/actions/workflows/validate.yaml)
+[![License: MIT](https://img.shields.io/github/license/AVA-2568/MY_SKILL?label=license)](./LICENSE)
+[![Skills](https://img.shields.io/badge/skills-27-blue)](./meta/distributor/INDEX.yaml)
+[![Platforms](https://img.shields.io/badge/platforms-workbuddy%20%7C%20codex%20%7C%20hermes-0F6E56)](./docs/adr/0002-protocol-compatible-adapters.md)
+
 # MY_SKILL
 
-A cross-platform AI skill library — workbuddy + codex + hermes, self-use, fully autonomously rebuilt.
+A cross-platform AI skill library for WorkBuddy, Codex, and Hermes — built for personal use and continuously reconstructed by an AI agent.
+
+## Highlights
+
+- **4 verticals + 1 horizontal review layer** — clean separation between routing, building, installing, and the cross-cutting review gate.
+- **Protocol-compatible** — generic `SKILL.md` conforms to the Anthropic Agent Skills standard; per-platform adapters translate to WorkBuddy / Codex / Hermes.
+- **AI-driven deployment** — the `installer` skill does the install; you talk to the agent, you don't type shell commands.
+- **Self-rebuilding** — short on a skill? the `Builder` vertical generates a new one on demand.
 
 ## Architecture
 
@@ -40,7 +54,7 @@ User task  ──▶  [Distributor]  pre:thinking-first  →  route + risk-score
                 — runs alongside, not part of B-Chain runtime —
 ```
 
-The 4 verticals (Distributor / Builder / Installer / Domain-entry) are on-demand. The horizontal layer has 4 components force-triggered by Distributor at specific flow points: thinking-first (pre-route) / Review (per-task + per-skill) / caveman (post-route) / grill-with-docs (on-gap).
+The 4 verticals (Distributor / Builder / Installer / Domain-entry) load on demand. The horizontal layer holds 4 components that the Distributor force-triggers at specific flow points: thinking-first (pre-route) / Review (per-task + per-skill) / caveman (post-route) / grill-with-docs (on-gap).
 
 ## Decisions
 
@@ -58,24 +72,24 @@ The 4 verticals (Distributor / Builder / Installer / Domain-entry) are on-demand
 
 | Component | Trigger point | Role |
 |---|---|---|
-| **thinking-first** | pre-route | Cognitive discipline (5 rules: understand / source-anchor / uncertainty / pre-delivery check / minimal intervention) |
-| **Review** | per-task + per-skill | Code Review (soft) / Task Recheck (soft) / Security Review (reflection + extreme-risk hard) + Lifecycle Governance |
-| **caveman** | pre-think + post-output | Pre-think constrains *thinking* to 3-5 short points; post-output compresses residual verbosity. Not post-only — affects AI thought. |
+| **thinking-first** | pre-route | Cognitive discipline — 5 rules: understand / anchor to sources / surface uncertainty / pre-delivery check / minimal intervention |
+| **Review** | per-task + per-skill | Code Review (soft) / Task Recheck (soft) / Security Review (reflective; hard gate on extreme risk) + Lifecycle Governance |
+| **caveman** | pre-think + post-output | Pre-think caps reasoning at 3–5 short points; post-output compresses leftover verbosity. It shapes thinking, not just text. |
 | **grill-with-docs** | on-gap | Design interrogation + ADR/glossary landing |
 
-All 4 are `user-invocable: false`; they cannot be /slash-called directly by the user.
+All 4 are `user-invocable: false` and cannot be triggered via a `/slash` command.
 
 ## Domain (5 LLM Capabilities)
 
 | Category | Meaning | Example seed skills |
 |---|---|---|
 | **Understanding** | Read input, parse context, recognize intent | `comprehend-code`, `comprehend-doc` |
-| **Generation** | Produce output: code, documents, interface contracts, architecture, schemas, visual specifications, productivity aids | `generate-api`, `generate-doc`, `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`, `writing-great-skills`, `handoff`, `teach` |
-| **Retrieval** | Find information, query data, call APIs (incl. analysis) | `retrieve-rag`, `retrieve-sql` |
+| **Generation** | Produce output — code, documents, interface contracts, architecture, schemas, visual specs, productivity aids | `generate-api`, `generate-doc`, `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`, `writing-great-skills`, `handoff`, `teach` |
+| **Retrieval** | Find information, query data, call APIs (analysis included) | `retrieve-rag`, `retrieve-sql` |
 | **Execution** | Run commands, manipulate files, invoke tools | `execute-bash`, `execute-git` |
-| **Decision** | Plan, choose, weigh tradeoffs (incl. analysis) | `decide-invest`, `decide-product` |
+| **Decision** | Plan, choose, weigh tradeoffs (analysis included) | `decide-invest`, `decide-product` |
 
-Governance (lifecycle) belongs to Review (horizontal), not to Domain.
+Lifecycle governance lives in Review (horizontal), not in Domain.
 
 ## Glossary
 
@@ -90,7 +104,7 @@ MY_SKILL/
 ├── meta/                    # 8 metadata modules (4V + 1H layer)
 │   ├── distributor/         # vertical: route + risk-score + gap-detect (force-triggers horizontal layer)
 │   │   ├── SKILL.md
-│   │   └── INDEX.yaml       # 26-skill registry (8 meta + 18 domain) + routing config + lifecycle governance
+│   │   └── INDEX.yaml       # 27-skill registry (8 modules + installer-bootstrap + 18 domain) + routing config + lifecycle governance
 │   ├── builder/             # vertical: confirm → plan → generate
 │   ├── installer/           # vertical: adapters/ + bootstrap/
 │   │   ├── adapters/        # per-platform translation (workbuddy/codex/hermes)
@@ -110,6 +124,34 @@ MY_SKILL/
 └── README.md
 ```
 
+## Deployment
+
+Deployment is **AI-driven**: the `installer` vertical does the work — you don't type shell commands. MY_SKILL is cross-platform; `installer` translates a generic `SKILL.md` into each platform's format via `meta/installer/adapters/` (workbuddy / codex / hermes). At session start, `bootstrap/` auto-verifies the registry.
+
+**Invoke it by talking to the agent, not the shell:**
+
+- Slash command: `/installer sync` — install every skill to the default platform.
+- Natural language: "把 MY_SKILL 装到 WorkBuddy" / "install MY_SKILL to WorkBuddy".
+- Single skill: `/installer install <skill-name> --platform=workbuddy`.
+
+The agent reads `INDEX.yaml`, applies the platform adapter, writes each skill to the target, and reports skips/conflicts. Full safety rules, skip-list (`thinking-first` / `caveman` / `decide-invest`), and `--force`: [docs/INSTALL.md](./docs/INSTALL.md).
+
+> `codex` / `hermes` adapters ship as `meta/installer/adapters/*.yaml`. The WorkBuddy path is the only automated installer today; port `sync.py` per adapter to reach other platforms. Running `sync.py` by hand is an escape hatch for when no agent is available.
+
+## Documentation
+
+| Doc | Purpose |
+|---|---|
+| [README.md](./README.md) | Architecture diagram + repo layout (English) |
+| [README.zh-CN.md](./README.zh-CN.md) | 中文版 (Chinese) |
+| [CONTEXT.md](./CONTEXT.md) | Glossary / ubiquitous language |
+| [AGENTS.md](./AGENTS.md) | Agent read order when working in this repo |
+| [docs/INSTALL.md](./docs/INSTALL.md) | Install / deploy skills to a platform |
+| [docs/adr/](./docs/adr/) | 7 architecture decision records (Q1–Q7) |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | AI agent contribution guidelines |
+| [CHANGELOG.md](./CHANGELOG.md) | Version history |
+| [LICENSE](./LICENSE) | MIT |
+
 ## Local development first
 
-This repository is developed locally first. Clone it anywhere and the layout under `meta/` and `domain/` works as-is.
+This repository is developed locally first. Clone it anywhere — the `meta/` and `domain/` layouts work as-is.
