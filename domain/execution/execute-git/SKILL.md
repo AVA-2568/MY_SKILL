@@ -14,7 +14,7 @@ Execute git operations.
 
 - User asks to commit, branch, merge, rebase, push, pull
 - User asks to inspect git state (status, diff, log)
-- User asks to set up a workout or stash
+- User asks to set up a worktree or stash
 
 ## Procedure (skeleton — Builder will expand)
 
