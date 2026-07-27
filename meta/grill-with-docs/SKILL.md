@@ -7,7 +7,7 @@ risk_level: low
 
 # Grill-With-Docs (设计拷问 + ADR 落地)
 
-设计/规划阶段的拷问工具。**Distributor 检测到模糊任务或设计请求时强制调用**.
+设计/规划阶段的拷问工具。**Distributor 检测到模糊任务或设计请求时强制调用**。
 
 ## 工作流
 
