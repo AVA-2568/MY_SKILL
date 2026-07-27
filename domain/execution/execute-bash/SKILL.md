@@ -1,37 +1,41 @@
 ---
 name: execute-bash
-description: "Execute a bash command on the local or remote shell. Use when the user asks to run a shell command, script, or batch operation. Triggers: \"run X\", \"execute Y\", \"shell into Z and do W\"."
+description: "Execute shell commands, scripts, and automation tasks in the Bash environment. Use when the user needs to run commands, scripts, file operations, or system automation."
 user-invocable: true
-risk_level: mid
+agent_created: true
 category: execution
 ---
 
-# Execute Bash (执行 Bash)
+# Execute-Bash (Shell 执行)
 
-Execute a bash command.
+Run shell commands, scripts, and automation in the Bash environment.
 
 ## When to Use
 
-- User asks to run a command
-- User asks to execute a script
-- User asks for a batch file operation
+- "Run this command"
+- "Create a script to..."
+- "Automate this task"
 
-## Procedure (skeleton — Builder will expand)
+## When Not to Use
 
-1. Identify the working directory and environment
-2. Construct the command (avoid destructive operations without confirmation)
-3. Execute
-4. Capture stdout / stderr / exit code
-5. Report
+- Git operations → use execute-git
+- Complex multi-step pipelines → prefer chaining with &&
+
+## Procedure
+
+1. Understand the desired outcome.
+2. Construct a safe, idempotent command.
+3. Run the command; capture output.
+4. Verify the expected result.
 
 ## Pitfalls
 
-- Destructive operations (`rm -rf`, `dd`, `> critical-file`): require explicit user confirmation
-- Long-running commands: respect timeout, suggest background
-- Commands with secrets: never echo credentials; use env vars or stdin
+- Destructive commands require user confirmation
+- Long-running processes should use background mode
+- File paths with spaces must be quoted
 
 ## Verification
 
-- Exit code is 0 (or expected non-zero)
-- Output matches user's intent
-- No silent failures
+- Command must complete with exit code 0
+- Output must match expected format
+- Clean up temporary files if created

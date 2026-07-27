@@ -1,36 +1,35 @@
 ---
 name: comprehend-doc
-description: "Read and summarize a document (PDF, markdown, text, web article) — extract key points, claims, action items, and intent. Use when the user shares a document and asks for a summary, key takeaways, or analysis. Triggers: \"summarize this\", \"what are the key points\", \"extract action items\", \"what does this document say\"."
+description: "Understand and explain documents — technical docs, specifications, manuals, reports. Use when the user wants to understand a document, extract key information, or get a structured summary."
 user-invocable: true
-risk_level: low
+agent_created: true
 category: understanding
 ---
 
-# Comprehend Document (理解文档)
+# Comprehend-Doc (文档理解)
 
-Read a document and produce a structured summary.
+Read, understand, and summarize documents.
 
 ## When to Use
 
-- User shares a document and asks for summary
-- User asks for key points, claims, or action items
-- User asks "what does this document say"
+- "Summarize this contract"
+- "Extract key points from this report"
+- "Explain this specification"
 
-## Procedure (skeleton — Builder will expand)
+## When Not to Use
 
-1. Identify document type and length
-2. Read fully (chunked if needed for long docs)
-3. Extract: thesis / key points / supporting evidence / action items
-4. Output: structured summary (length adapts to user request)
+- Code understanding → use comprehend-code
+- Quick facts → use web-research
 
-## Pitfalls
+## Procedure
 
-- For very long documents, ask the user what aspect to focus on
-- Don't paraphrase claims that look like quotes; quote them directly
-- Distinguish author's claims from cited claims
+1. Read the document in full.
+2. Identify document type (spec, report, contract, manual).
+3. Extract key sections, decisions, and action items.
+4. Present a structured summary.
 
 ## Verification
 
-- Summary covers the document's main thesis
-- Key action items (if any) listed explicitly
-- Length proportional to user request (default: concise)
+- All key sections are covered
+- Key numbers and decisions are extracted
+- Uncertainties are flagged

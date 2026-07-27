@@ -1,38 +1,38 @@
 ---
 name: decide-product
-description: "Product decision support — analyze a product decision (feature priority, A/B test result, roadmap trade-off) and produce a structured recommendation. Use when the user asks \"should we build X\", \"which feature has higher priority\", \"is the A/B result conclusive\". Triggers: \"prioritize the roadmap\", \"evaluate feature X\", \"interpret the A/B result\", \"decide between X and Y\"."
+description: "Product decision advisor — weigh tradeoffs between features, priorities, or product strategies. Use when the user faces product decisions, feature prioritization, or strategic product choices."
 user-invocable: true
-risk_level: mid
+agent_created: true
 category: decision
 ---
 
-# Decide Product (产品决策)
+# Decide-Product (产品决策)
 
-Product decision support: structured analysis of a product decision.
+Weigh tradeoffs between product options and provide a structured recommendation.
 
 ## When to Use
 
-- User asks whether to build a feature
-- User asks to prioritize the roadmap
-- User asks to interpret an A/B test result
-- User asks to evaluate a feature proposal
+- "Which feature should we build first?"
+- "Should we invest in performance or new features?"
+- "Which market segment should we target?"
 
-## Procedure (skeleton — Builder will expand)
+## When Not to Use
 
-1. Frame the decision (what's being chosen, what are the alternatives)
-2. Identify the criteria (impact, effort, risk, alignment with strategy)
-3. Score each alternative on the criteria
-4. List the assumptions and how sensitive the recommendation is to them
-5. Output: recommendation + sensitivity analysis + open questions
+- Technical architecture decisions → use system-design
+- Investment decisions → use decide-invest
 
-## Pitfalls
+## Procedure
 
-- Don't optimize for a single metric; multi-criteria decisions need trade-off reasoning
-- Acknowledge unknowns; don't pretend to know things the user hasn't told you
-- For A/B test results, distinguish statistical significance from practical significance
+1. Clarify the decision context: timeframe, constraints, success criteria.
+2. List 2-4 viable options.
+3. Score each option against success criteria.
+4. Recommend with rationale.
 
-## Verification
+## Output Template
 
-- All criteria are explicit (not hidden in the recommendation)
-- Sensitivity analysis is provided (what would change the recommendation)
-- Open questions are listed (what additional data would help)
+```markdown
+## Decision: [Option Name]
+- Rationale: ...
+- Tradeoffs accepted: ...
+- Risk: ...
+```

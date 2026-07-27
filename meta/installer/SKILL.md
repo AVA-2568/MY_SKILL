@@ -3,6 +3,7 @@ name: installer
 description: "Translate MY_SKILL's generic SKILL.md into platform-specific formats (workbuddy / codex / hermes) and bootstrap session activation. Two internal sub-modules — adapters/ (per-platform translation) + bootstrap/ (session activation). Manually invocable via `installer sync` and `installer install`."
 user-invocable: true
 risk_level: mid
+category: meta
 ---
 
 # Installer (安装配置器)

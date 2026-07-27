@@ -1,38 +1,68 @@
 ---
 name: execute-git
-description: "Execute git operations — status, diff, commit, branch, merge, rebase, push, pull. Use when the user asks to interact with a git repository. Triggers: \"commit my changes\", \"create a branch for X\", \"merge Y into Z\", \"show me the diff\", \"push to origin\"."
+description: "Git operations — commit, push, branch, merge, and git workflow management. Use when the user needs git actions or version control operations. Related user-level skill: git-workflow (workflow conventions)."
 user-invocable: true
-risk_level: mid
+agent_created: true
 category: execution
+related: [git-workflow]
 ---
 
-# Execute Git (执行 Git)
+# Execute-Git (Git 操作)
 
-Execute git operations.
+Perform git operations with safety checks.
 
 ## When to Use
 
-- User asks to commit, branch, merge, rebase, push, pull
-- User asks to inspect git state (status, diff, log)
-- User asks to set up a worktree or stash
+- "Commit my changes"
+- "Push to remote"
+- "Create a branch"
+- "Merge feature into main"
+- "Undo the last commit"
 
-## Procedure (skeleton — Builder will expand)
+## When Not to Use
 
-1. Verify git repo and current branch
-2. Check working tree state (clean vs dirty)
-3. Construct the git command
-4. For destructive ops (force-push, reset --hard, branch -D): require explicit user confirmation
-5. Execute
-6. Report
+- Interactive rebase (`git rebase -i`) → ask user for explicit step-by-step instructions; do not automate
+- Git bisect → requires manual guidance; stub and ask user to run commands
+- Submodule operations (`git submodule`) → stub: ask user for explicit intent
+- Reflog recovery → surface reflog entries but let the user pick the target
+
+## Procedure
+
+1. **Status check** — run `git status` and `git diff --stat` to understand the current state.
+2. **Plan** — describe the intended operation to the user (especially if destructive: reset, force-push, rebase). Wait for confirmation.
+3. **Pre-operation safety**:
+   - For merge: do a `git merge --no-commit --no-ff <branch>` dry-run first; if conflicts, report them.
+   - For push: show `git diff --stat` and let the user review before pushing.
+   - For destructive operations: show the full command, explain the impact, wait for explicit "yes".
+4. **Execute** — run the git operation.
+5. **Verify** — run `git log --oneline -3`, `git status`, and optionally `git diff --stat` to confirm the result.
 
 ## Pitfalls
 
-- `git push --force` to a shared branch: NEVER do this silently
-- `git reset --hard` / `git checkout --` / `git clean -fd`: all destructive; require confirmation
-- For merge conflicts, surface them; don't auto-resolve
+- **Destructive commands list** (all require explicit approval before execution):
+  - `git reset --hard` / `git reset --mixed`
+  - `git push --force` / `git push --force-with-lease`
+  - `git rebase` (interactive or not)
+  - `git checkout -- <file>` (discard changes)
+  - `git branch -D` (force-delete branch)
+- **Skipping pre-commit hooks**: Never use `--no-verify`. If a hook fails, diagnose and fix the issue.
+- **No diff review before commit**: Always show the diff to the user before committing, unless they explicitly waived review.
+- **Merge without dry-run**: Merging without `--no-commit --no-ff` dry-run can leave a dirty working tree.
 
 ## Verification
 
-- Git state after operation matches user's intent
-- No silent data loss
-- For commits: verify the message and the diff before pushing
+- After the operation: `git status` shows a clean working tree matching the expected outcome
+- `git log --oneline -3` shows the expected commit on the expected branch
+- For push operations: local HEAD === remote HEAD (verify via `git rev-parse HEAD && git ls-remote origin HEAD`)
+- For merge operations: the merge commit appears in `git log` and the feature branch's commits are reachable
+
+## Output Template
+
+When reporting the result of a git operation, use a compact summary:
+
+```
+Status: <clean/dirty>
+Branch: <current>
+Last commit: <hash> <message>
+Remote: <in-sync/behind N/ahead N>
+```

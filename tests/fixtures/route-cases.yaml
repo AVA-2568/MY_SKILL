@@ -1,0 +1,61 @@
+cases:
+  - task: "read this Python file and explain the class hierarchy"
+    expect: comprehend-code
+    reason: "code understanding with specific file mention"
+  - task: "design an API for the user service with CRUD endpoints"
+    expect: api-design
+    reason: "explicit design request, not implementation"
+  - task: "generate an Express.js endpoint for creating a user"
+    expect: generate-api
+    reason: "implementation with framework mention"
+  - task: "what do my notes say about the Kafka migration"
+    expect: retrieve-rag
+    reason: "personal knowledge base query"
+  - task: "how many orders were placed in Q3"
+    expect: retrieve-sql
+    reason: "aggregate data question"
+  - task: "commit my changes to the feature branch"
+    expect: execute-git
+    reason: "git operation"
+  - task: "build the project and run the test suite"
+    expect: execute-bash
+    reason: "shell command chain"
+  - task: "should I buy AAPL right now"
+    expect: decide-invest
+    reason: "investment decision"
+  - task: "which feature has higher priority: dark mode or offline support"
+    expect: decide-product
+    reason: "product tradeoff decision"
+  - task: "create a README for the new API"
+    expect: generate-doc
+    reason: "document generation"
+  - task: "design the database schema for a blog platform"
+    expect: database-design
+    reason: "schema design request"
+  - task: "设计一个微服务架构来处理支付流水"
+    expect: system-design
+    reason: "architecture design in Chinese"
+  - task: "design the login page UI with dark mode support"
+    expect: ui-design
+    reason: "UI visual design request"
+  - task: "map out the user journey for onboarding"
+    expect: ux-design
+    reason: "UX flow design"
+  - task: "summarize this contract document"
+    expect: comprehend-doc
+    reason: "document understanding"
+  - task: "how do I teach someone about recursion"
+    expect: teach
+    reason: "teaching request"
+  - task: "write a handoff doc for the next session"
+    expect: handoff
+    reason: "handoff request"
+  - task: "what makes a good skill description"
+    expect: writing-great-skills
+    reason: "skill writing meta-reference"
+  - task: "what skills do you have"
+    expect: domain-entry
+    reason: "library browsing"
+  - task: "设计一个完整的电商平台"
+    expect: grill-with-docs
+    reason: "broad design task should trigger gap detection"

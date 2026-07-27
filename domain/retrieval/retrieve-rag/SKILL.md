@@ -1,37 +1,39 @@
 ---
 name: retrieve-rag
-description: "Retrieval-Augmented Generation over a local knowledge base. Use when the user asks a question that requires grounding in their documents, notes, or local files. Triggers: \"search my notes for X\", \"what do my docs say about Y\", \"find references to Z in my knowledge base\"."
+description: "Retrieve information from personal knowledge sources (notes, docs, wikis, knowledge bases) using RAG-style retrieval. Use when the user asks questions about their personal notes, saved documents, or knowledge base."
 user-invocable: true
-risk_level: low
+agent_created: true
 category: retrieval
 ---
 
-# Retrieve RAG (检索增强)
+# Retrieve-RAG (知识检索)
 
-RAG query over the user's local knowledge base.
+Retrieve relevant information from personal knowledge sources.
 
 ## When to Use
 
-- User asks a question that requires their documents
-- User asks "what do my notes say about X"
-- User asks to find references across a corpus
+- "What do my notes say about X?"
+- "Find the document about Y"
+- "Search my knowledge base for Z"
 
-## Procedure (skeleton — Builder will expand)
+## When Not to Use
 
-1. Identify the knowledge base (path / index location)
-2. Embed the user's query
-3. Retrieve top-k relevant chunks
-4. Optionally re-rank
-5. Synthesize an answer with citations
+- Structured database queries → use retrieve-sql
+- Web searches → use web-research
+
+## Procedure
+
+1. Parse the user query to identify key search terms.
+2. Search the knowledge base for relevant documents.
+3. Rank results by relevance.
+4. Present the most relevant information with source references.
 
 ## Pitfalls
 
-- Don't retrieve without first checking the index is current
-- Cite source paths/sections for every claim
-- If retrieved context is empty, say so explicitly — don't hallucinate
+- Results may be outdated; check document timestamps
+- Multiple documents may have conflicting information
 
 ## Verification
 
-- Answer is grounded in retrieved chunks
-- Citations are accurate (point to actual source paths)
-- Confidence is calibrated (low confidence → say "I don't know")
+- Results must include source references
+- If no results found, report clearly rather than fabricating

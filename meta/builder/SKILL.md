@@ -3,6 +3,7 @@ name: builder
 description: "Create a new skill on demand when Distributor detects a skill gap, or when the user wants to add a new capability to the library. Three internal sub-modules — confirm (clarify user intent) → plan (design skill structure) → generate (write SKILL.md + bundled resources). Loaded on demand by Distributor; manually invocable via `/builder`."
 user-invocable: true
 risk_level: low
+category: meta
 ---
 
 # Builder (构建器)
@@ -38,5 +39,5 @@ Creates new skills on demand. Triggered by Distributor when no existing skill ma
 ## Verification
 
 - After generation, the new skill must be routable: re-run Distributor's matching against INDEX.yaml; the new skill must appear and match the original task.
-- The new skill must have at least one bundled resource (or be explicitly documented as "no resources needed").
+- The new skill must have at least one bundled resource (or be explicitly documented as \"no resources needed\").
 - INDEX.yaml must reflect the new skill before generation is considered complete.
