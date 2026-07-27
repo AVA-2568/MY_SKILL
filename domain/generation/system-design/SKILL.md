@@ -1,6 +1,6 @@
 ---
 name: system-design
-description: Design a production-ready system architecture from product goals, workload, reliability, security, and operational constraints. Use whenever the user asks for system design, architecture, distributed systems, service decomposition, capacity planning, scalability, high availability, SLOs, data flow, migration strategy, or tradeoff analysis—even if they only say "design the backend" or "how should this system be structured." Produce an explicit architecture specification before implementation; do not silently jump to code.
+description: "Design a production-ready system architecture from product goals, workload, reliability, security, and operational constraints. Use whenever the user asks for system design, architecture, distributed systems, service decomposition, capacity planning, scalability, high availability, SLOs, data flow, migration strategy, or tradeoff analysis—even if they only say \"design the backend\" or \"how should this system be structured.\" Produce an explicit architecture specification before implementation; do not silently jump to code."
 user-invocable: true
 agent_created: true
 risk_level: mid

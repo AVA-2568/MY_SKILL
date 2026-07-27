@@ -1,6 +1,6 @@
 ---
 name: retrieve-sql
-description: Generate and execute a SQL query against a relational database. Use when the user asks a data question best answered by SQL. Triggers: "how many users signed up last week", "show me the top 10 customers by revenue", "what's the average X by Y".
+description: "Generate and execute a SQL query against a relational database. Use when the user asks a data question best answered by SQL. Triggers: \"how many users signed up last week\", \"show me the top 10 customers by revenue\", \"what's the average X by Y\"."
 user-invocable: true
 risk_level: mid
 category: retrieval

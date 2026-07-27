@@ -1,6 +1,6 @@
 ---
 name: ux-design
-description: Design user experience flows, information architecture, task journeys, and interaction behavior from user goals and business constraints. Use whenever the user asks for UX design, user flow, journey map, information architecture, onboarding, task flow, interaction design, edge cases, error recovery, usability assumptions, or usability validation—even if they only say "make this easier to use" or "design the experience." Produce a testable UX specification before visual styling; do not silently replace research with assumptions.
+description: "Design user experience flows, information architecture, task journeys, and interaction behavior from user goals and business constraints. Use whenever the user asks for UX design, user flow, journey map, information architecture, onboarding, task flow, interaction design, edge cases, error recovery, usability assumptions, or usability validation—even if they only say \"make this easier to use\" or \"design the experience.\" Produce a testable UX specification before visual styling; do not silently replace research with assumptions."
 user-invocable: true
 agent_created: true
 risk_level: low
@@ -71,6 +71,6 @@ category: generation
 
 ## 简短示例
 
-用户请求："设计一个新用户首次创建项目的体验。"
+用户请求：“设计一个新用户首次创建项目的体验。”
 
-先定义"创建成功"的判据，再设计首次进入、模板选择、命名、成员邀请、权限提示、保存失败和撤销路径，最后给出任务成功率与完成时间的可用性验证方案。
+先定义“创建成功”的判据，再设计首次进入、模板选择、命名、成员邀请、权限提示、保存失败和撤销路径，最后给出任务成功率与完成时间的可用性验证方案。

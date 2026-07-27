@@ -1,6 +1,6 @@
 ---
 name: retrieve-rag
-description: Retrieval-Augmented Generation over a local knowledge base. Use when the user asks a question that requires grounding in their documents, notes, or local files. Triggers: "search my notes for X", "what do my docs say about Y", "find references to Z in my knowledge base".
+description: "Retrieval-Augmented Generation over a local knowledge base. Use when the user asks a question that requires grounding in their documents, notes, or local files. Triggers: \"search my notes for X\", \"what do my docs say about Y\", \"find references to Z in my knowledge base\"."
 user-invocable: true
 risk_level: low
 category: retrieval

@@ -1,6 +1,6 @@
 ---
 name: ui-design
-description: Generate the visual and structural UI specification for a product, feature, page, or component from product goals and brand constraints. Use whenever the user asks for a UI design, mockup spec, screen layout, design tokens, component breakdown, state catalog, responsive rules, or accessibility treatment—even if the brief is just "design the screen for X," "build a UI for Y," "mock up the dashboard," "define the visual language," or "style the component." Covers information hierarchy, page layout, components, states, design tokens, color, typography, responsive behavior, accessibility, interaction notes, and handoff specs. Does not replace UX research, task flow, or information architecture—assume those are already decided or produced by `ux-design`.
+description: "Generate the visual and structural UI specification for a product, feature, page, or component from product goals and brand constraints. Use whenever the user asks for a UI design, mockup spec, screen layout, design tokens, component breakdown, state catalog, responsive rules, or accessibility treatment—even if the brief is just \"design the screen for X,\" \"build a UI for Y,\" \"mock up the dashboard,\" \"define the visual language,\" or \"style the component.\" Covers information hierarchy, page layout, components, states, design tokens, color, typography, responsive behavior, accessibility, interaction notes, and handoff specs. Does not replace UX research, task flow, or information architecture—assume those are already decided or produced by `ux-design`."
 user-invocable: true
 agent_created: true
 risk_level: low
@@ -28,7 +28,7 @@ category: generation
 ## 流程
 
 1. **锁定目标**：产品要传达的核心动作、情绪基线、品牌硬度（保守 / 中性 / 强烈）。
-2. **建立 token 基线**：颜色（语义 + 中性 + 品牌）、字号阶梯、行高、间距阶（4/8 基线）、圆角、阴影层级、动效曲线与时长。
+2. **建立 token 基线**：颜色（语义 + 中性 + 品牌）、字号阶梯、行高、间距阶（4/8 基线）、圆角、阴影���级、动效曲线与时长。
 3. **划信息层级**：每屏给出主标题 / 次标题 / 正文 / 辅助 / 操作五级语义层级与对应 token。
 4. **排版布局**：栅格列数、gutter、容器最大宽、断点（sm/md/lg/xl）、安全区与触摸目标（≥44×44）。
 5. **拆组件清单**：每屏列出所用组件（按钮、输入、卡片、列表、模态、导航、Toast、Empty/Loading/Error），含 props 与状态。
