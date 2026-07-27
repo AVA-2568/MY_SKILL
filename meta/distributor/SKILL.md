@@ -1,6 +1,6 @@
 ---
 name: distributor
-description: Route user tasks to the most appropriate skill via description matching plus risk scoring; detect skill gaps and trigger Builder. Always-active; the entry point of every task. Use when the user submits any task — even if they don't explicitly ask for routing.
+description: "Route user tasks to the most appropriate skill via description matching plus risk scoring; detect skill gaps and trigger Builder. Always-active; the entry point of every task. Use when the user submits any task — even if they don't explicitly ask for routing."
 user-invocable: false
 risk_level: low
 always_active: true

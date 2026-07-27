@@ -1,6 +1,6 @@
 ---
 name: caveman
-description: 思考 + 输出双层精简——让 AI 在思考阶段就只列核心要点（不展开不写过渡），输出阶段再兜底压一遍。Distributor 在 pre-think（thinking-first 之后）和 post-output 两个时点强制触发。Triggers: "简短点", "caveman mode", "少废话", "token 压缩", "少说废话"。即使没显式要求，对长思考链 + 长输出也默认应用。
+description: "思考 + 输出双层精简——让 AI 在思考阶段就只列核心要点（不展开不写过渡），输出阶段再兜底压一遍。Distributor 在 pre-think（thinking-first 之后）和 post-output 两个时点强制触发。Triggers: \"简短点\", \"caveman mode\", \"少废话\", \"token 压缩\", \"少说废话\"。即使没显式要求，对长思考链 + 长输出也默认应用。"
 user-invocable: false
 risk_level: low
 ---

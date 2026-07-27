@@ -1,6 +1,6 @@
 ---
 name: domain-entry
-description: Overview of the 5 LLM-capability categories in the domain layer (Understanding / Generation / Retrieval / Execution / Decision). Use when the user wants to browse the skill library, asks "what skills do you have", or is uncertain which category fits their need.
+description: "Overview of the 5 LLM-capability categories in the domain layer (Understanding / Generation / Retrieval / Execution / Decision). Use when the user wants to browse the skill library, asks \"what skills do you have\", or is uncertain which category fits their need."
 user-invocable: true
 risk_level: low
 ---

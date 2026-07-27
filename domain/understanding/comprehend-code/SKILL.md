@@ -1,6 +1,6 @@
 ---
 name: comprehend-code
-description: Read and explain a code file's structure, behavior, dependencies, and intent. Use when the user pastes code and asks "what does this do", or asks for an explanation of a function, class, or module. Triggers: "explain this code", "what does this function do", "trace the logic", "summarize the file".
+description: "Read and explain a code file's structure, behavior, dependencies, and intent. Use when the user pastes code and asks \"what does this do\", or asks for an explanation of a function, class, or module. Triggers: \"explain this code\", \"what does this function do\", \"trace the logic\", \"summarize the file\"."
 user-invocable: true
 risk_level: low
 category: understanding

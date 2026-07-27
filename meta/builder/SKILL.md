@@ -1,6 +1,6 @@
 ---
 name: builder
-description: Create a new skill on demand when Distributor detects a skill gap, or when the user wants to add a new capability to the library. Three internal sub-modules — confirm (clarify user intent) → plan (design skill structure) → generate (write SKILL.md + bundled resources). Loaded on demand by Distributor; manually invocable via `/builder`.
+description: "Create a new skill on demand when Distributor detects a skill gap, or when the user wants to add a new capability to the library. Three internal sub-modules — confirm (clarify user intent) → plan (design skill structure) → generate (write SKILL.md + bundled resources). Loaded on demand by Distributor; manually invocable via `/builder`."
 user-invocable: true
 risk_level: low
 ---

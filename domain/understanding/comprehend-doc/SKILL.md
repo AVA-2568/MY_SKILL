@@ -1,6 +1,6 @@
 ---
 name: comprehend-doc
-description: Read and summarize a document (PDF, markdown, text, web article) — extract key points, claims, action items, and intent. Use when the user shares a document and asks for a summary, key takeaways, or analysis. Triggers: "summarize this", "what are the key points", "extract action items", "what does this document say".
+description: "Read and summarize a document (PDF, markdown, text, web article) — extract key points, claims, action items, and intent. Use when the user shares a document and asks for a summary, key takeaways, or analysis. Triggers: \"summarize this\", \"what are the key points\", \"extract action items\", \"what does this document say\"."
 user-invocable: true
 risk_level: low
 category: understanding

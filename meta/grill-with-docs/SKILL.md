@@ -1,6 +1,6 @@
 ---
 name: grill-with-docs
-description: 设计拷问 + ADR/glossary 落地——Distributor 检测到模糊任务或设计请求时强制触发。Relentless 拷问逐个收窄设计分支，同时落地 ADR 和术语表。Triggers: "帮我设计 X", "规划 Y", "做项目 Z", 或任何 description match_score 低于阈值的模糊任务。user-invocable: false。
+description: "设计拷问 + ADR/glossary 落地——Distributor 检测到模糊任务或设计请求时强制触发。Relentless 拷问逐个收窄设计分支，同时落地 ADR 和术语表。Triggers: \"帮我设计 X\", \"规划 Y\", \"做项目 Z\", 或任何 description match_score 低于阈值的模糊任务。user-invocable: false。"
 user-invocable: false
 risk_level: low
 ---
