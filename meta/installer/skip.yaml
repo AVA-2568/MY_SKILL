@@ -1,0 +1,6 @@
+# Installer skip-list — skills excluded from `installer sync`.
+# Deployment policy lives here, not in the adapter logic (ADR-0002 purity).
+skip_list:
+  - thinking-first      # user-invocable:false discipline; conflicts with host's own
+  - caveman             # user-invocable:false discipline; conflicts with host's own
+  - decide-invest       # financial-decision guard; withhold from auto-deploy

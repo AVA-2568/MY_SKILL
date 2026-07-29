@@ -11,8 +11,22 @@ Reads INDEX.yaml, scores every skill against the task, outputs top-k JSON.
 import sys, yaml, json, re, os
 from pathlib import Path
 
-INDEX_PATH = Path(__file__).resolve().parent.parent / "INDEX.yaml"
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+DIST_DIR = Path(__file__).resolve().parent.parent          # .../distributor
+INDEX_PATH = DIST_DIR / "INDEX.yaml"
+SKILLS_ROOT = DIST_DIR.parent                              # .../skills (installed) or .../meta (repo)
+REPO_ROOT = DIST_DIR.parent.parent                        # MY_SKILL repo root (repo mode)
+
+
+def _resolve_skill_md(skill, name):
+    """Locate the skill's SKILL.md: installed layout first, then repo layout."""
+    candidates = [
+        SKILLS_ROOT / name / "SKILL.md",                     # installed: skills/<name>
+        REPO_ROOT / (skill.get("path") or "") / "SKILL.md",  # repo: MY_SKILL/<path>
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
 
 
 def load_index():
@@ -29,12 +43,10 @@ def load_skill_descriptions(index):
     """
     desc_map = {}
     for skill in index.get("skills", []):
-        path = skill.get("path")
-        if not path:
-            continue
-        skill_md = REPO_ROOT / path / "SKILL.md"
-        if not skill_md.exists():
-            desc_map[skill.get("name")] = ""
+        name = skill.get("name")
+        skill_md = _resolve_skill_md(skill, name)
+        if not skill_md:
+            desc_map[name] = ""
             continue
         text = skill_md.read_text(encoding="utf-8")
         m = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.DOTALL)
@@ -203,7 +215,7 @@ def score_all(task_tokens, raw_tokens, index, desc_map):
     for skill in index["skills"]:
         # Skip system infrastructure: meta skills that are not user-invocable
         category = skill.get("category", "")
-        user_inv = skill.get("user_invocable", True)
+        user_inv = skill.get("user-invocable", True)
         if category == "meta" and user_inv is False:
             # Exception: some meta skills are user-facing despite user_invocable:false
             name = skill["name"]
@@ -218,17 +230,6 @@ def score_all(task_tokens, raw_tokens, index, desc_map):
         if kw_match and name == kw_match:
             match = max(match, 40.0)
 
-        risk_penalty = {"low": 0, "mid": -10, "high": -30}.get(
-            skill.get("risk_level", "low"), 0
-        )
-        composite = match + risk_penalty
-        results.append({
-            "name": skill["name"],
-            "match_score": round(match, 1),
-            "risk_penalty": risk_penalty,
-            "composite": round(composite, 1),
-            "path": skill["path"],
-        })
         risk_penalty = {"low": 0, "mid": -10, "high": -30}.get(
             skill.get("risk_level", "low"), 0
         )

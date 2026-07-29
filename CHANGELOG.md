@@ -29,4 +29,6 @@ First runnable skeleton — the MVP minimum viable library.
 
 ## [Unreleased]
 
-- Placeholder for future work (Phase 1: enrich 6 core seed skills)
+- **Phase 1 — enrich 6 core seed skills**: deepen `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`, `writing-great-skills` with concrete templates / checklists / output schemas (beyond the MVP skeleton).
+- **Phase 2 — lifecycle tooling**: add a CLI to surface `INDEX.yaml` stale/overlap/zero-usage signals so Review's per-skill governance runs on a schedule, not just by hand.
+- **Phase 3 — adapter parity**: port `sync.py` to `codex` / `hermes` adapters so all three platforms install from one registry.

@@ -91,6 +91,8 @@ All 4 are `user-invocable: false` and cannot be triggered via a `/slash` command
 
 Lifecycle governance lives in Review (horizontal), not in Domain.
 
+> **`Domain` vs `domain-entry`**: `domain/` holds the **execution units** (the 18 seed skills, routed by Distributor at runtime). `domain-entry` is a **browsing entrypoint** skill (on-demand, `user-invocable: true`) — it only lists categories/skills for the user; actual routing still goes through Distributor's risk-score + match logic. The two are not the same node; the architecture diagram's `[Domain]` box refers to the execution units, not the `domain-entry` skill.
+
 ## Glossary
 
 See [CONTEXT.md](./CONTEXT.md) for the canonical term definitions.

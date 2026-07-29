@@ -13,9 +13,31 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 INDEX = REPO_ROOT / "meta" / "distributor" / "INDEX.yaml"
+SKIP_CONFIG = REPO_ROOT / "meta" / "installer" / "skip.yaml"
 
-# Skills to skip during sync (overlap/conflict with user's existing skills)
-SKIP_LIST = {"thinking-first", "caveman", "decide-invest"}
+# Skills to skip during sync (overlap/conflict with user's existing skills).
+# Loaded from meta/installer/skip.yaml; falls back to this set if the file is
+# missing so sync.py never breaks on a bare checkout.
+DEFAULT_SKIP_LIST = {"thinking-first", "caveman", "decide-invest"}
+
+
+def load_skip_list():
+    if not SKIP_CONFIG.exists():
+        return set(DEFAULT_SKIP_LIST)
+    with open(SKIP_CONFIG, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+    return set(cfg.get("skip_list", DEFAULT_SKIP_LIST))
+
+
+def _copytree_overwrite(src, dst):
+    """Copy src tree into dst, overwriting files in place. Never deletes dst
+    contents — avoids bulk-delete gates and is safe for incremental updates."""
+    for item in src.rglob("*"):
+        if item.is_file():
+            rel = item.relative_to(src)
+            target = dst / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(item, target)
 
 
 def apply_workbuddy_adapter(frontmatter, body):
@@ -31,8 +53,9 @@ def apply_workbuddy_adapter(frontmatter, body):
         fm.pop("user-invocable", None)
     else:
         fm.pop("user-invocable", None)
-    # Strip MY_SKILL-only fields
-    for key in ["agent_created", "risk_level", "category", "horizontal",
+    # Strip MY_SKILL-only fields (keep agent_created so user-level install
+    # survives app's builtin-skill sync/restore)
+    for key in ["risk_level", "category", "horizontal",
                 "always_active", "source", "data_layer", "related"]:
         fm.pop(key, None)
     return fm, body
@@ -41,6 +64,7 @@ def apply_workbuddy_adapter(frontmatter, body):
 def sync(target_dir, dry_run=False, force=False):
     with open(INDEX, encoding="utf-8") as f:
         index = yaml.safe_load(f)
+    skip_list = load_skip_list()
     target = Path(target_dir).expanduser().resolve()
     os.makedirs(target, exist_ok=True)
 
@@ -48,16 +72,17 @@ def sync(target_dir, dry_run=False, force=False):
         name = skill["name"]
 
         # Skip listed skills
-        if name in SKIP_LIST and not force:
+        if name in skip_list and not force:
             print(f"SKIP {name}: in skip-list (use --force to override)")
             continue
 
-        skill_path = REPO_ROOT / skill["path"] / "SKILL.md"
-        if not skill_path.exists():
-            print(f"SKIP {name}: SKILL.md not found at {skill_path}")
+        skill_src = REPO_ROOT / skill["path"]
+        skill_md_src = skill_src / "SKILL.md"
+        if not skill_md_src.exists():
+            print(f"SKIP {name}: SKILL.md not found at {skill_md_src}")
             continue
 
-        text = skill_path.read_text(encoding="utf-8")
+        text = skill_md_src.read_text(encoding="utf-8")
         fm_end = text.index("---", 3)
         fm_raw = text[4:fm_end].strip()
         fm = yaml.safe_load(fm_raw) or {}
@@ -66,22 +91,23 @@ def sync(target_dir, dry_run=False, force=False):
         new_fm, body = apply_workbuddy_adapter(fm, body)
         new_text = "---\n" + yaml.dump(new_fm, allow_unicode=True, sort_keys=False) + "---\n\n" + body
 
-        dest = target / name / "SKILL.md"
+        dest_dir = target / name
 
         # Skip if identical already exists
-        if dest.exists() and not force:
-            existing = dest.read_text(encoding="utf-8")
+        if dest_dir.exists() and not force:
+            existing_md = dest_dir / "SKILL.md"
+            existing = existing_md.read_text(encoding="utf-8") if existing_md.exists() else ""
             if existing == new_text:
                 print(f"SKIP {name}: already up-to-date")
                 continue
             print(f"WARN {name}: exists (use --force to overwrite)")
 
         if dry_run:
-            print(f"DRY-RUN: would write {dest}")
+            print(f"DRY-RUN: would write {dest_dir}")
         else:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(new_text, encoding="utf-8")
-            print(f"OK: {name} → {dest}")
+            _copytree_overwrite(skill_src, dest_dir)
+            (dest_dir / "SKILL.md").write_text(new_text, encoding="utf-8")
+            print(f"OK: {name} → {dest_dir}")
 
 
 def main():
