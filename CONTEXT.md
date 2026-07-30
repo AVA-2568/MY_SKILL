@@ -1,6 +1,6 @@
 # MY_SKILL
 
-A cross-platform AI skill library (workbuddy + codex + hermes), self-use, fully autonomously rebuilt from scratch. The 4-vertical + 1-horizontal architecture classifies the domain layer by LLM capability graph rather than by task content.
+Skill **infrastructure** for cross-platform AI agents — a registry + installer + router + review that makes skills from any source (superpowers, mattpocock, your own repo) installable across platforms and resistant to model hallucination. Not a content library.
 
 ## Language
 
@@ -9,59 +9,45 @@ A self-contained package of instructions, scripts, and resources that an AI agen
 _Avoid_: prompt template, instruction file, recipe
 
 **Distributor (分发器)**:
-The vertical module that routes user tasks to the most appropriate skill. Implements soft routing via description matching, plus risk scoring (soft constraint) and gap detection (triggers Builder when no skill matches).
+The always-active module that guarantees skill discoverability and routes user tasks. Two responsibilities: (1) at session start, inject every registered skill's `name` + `description` into context so the model cannot "forget" installed skills exist; (2) per task, match the task against skill descriptions via keyword routes + fuzzy scoring with risk penalty, and forward to the top match or report a gap.
 _Avoid_: router, dispatcher, classifier
 
-**Builder (构建器)**:
-The vertical module that creates new skills on demand. Three internal sub-modules: `confirm` (clarify user intent) → `plan` (design skill structure) → `generate` (write SKILL.md + bundled resources). Decoupled from the domain layer.
-_Avoid_: skill creator, generator, scaffolder
-
 **Installer (安装配置器)**:
-The vertical module that translates a generic SKILL.md into platform-specific formats (workbuddy / codex / hermes) and bootstraps session loading (only Distributor is always-active; others are on-demand).
+The module that imports skills from external sources and installs them to platforms. Three sub-modules: `importer.py` (pull SKILL.md from GitHub repos or local paths, normalize frontmatter, register in INDEX.yaml) + `adapters/` (translate to workbuddy/codex/hermes) + `bootstrap/` (session-start verification).
 _Avoid_: adapter (use only as a sub-component), loader, packager
 
+**Importer (导入器)**:
+Source-agnostic skill puller. Part of Installer. Scans GitHub repos (`owner/repo`) or local paths for SKILL.md files, normalizes frontmatter to ensure required fields exist, copies to `domain/<category>/<name>/`, and registers in INDEX.yaml. Works with any repo following the SKILL.md convention.
+_Avoid_: downloader, cloner
+
 **Review (审查)**:
-The horizontal concern that intercepts every task and governs the skill library. Two scopes:
-- *Per-task*: three sub-types — Code Review (product view, soft gate), Task Recheck (goal view, soft gate), Security Review (risk view, reflection gate + extreme-risk hard gate). Triggered at input / process / output points of every task.
-- *Per-skill*: Lifecycle Governance — review, merge, split, retire skills. The meta-governance role no major public skill ecosystem abstracts as a first-class module; MY_SKILL treats it as part of Review.
+The horizontal module with two focused scopes: (1) **Reflection Gate** — after Distributor routes to a skill, verify the model actually executed it; if not, re-inject "you mentioned X but did not execute it" so the model must respond. (2) **Lifecycle Governance** — review/merge/split/retire skills in INDEX.yaml. Code Review and Task Recheck were removed (ecosystem's job).
 _Avoid_: validation, audit, verification, quality-check
 
-**Thinking-First (思考纪律)**:
-A horizontal discipline skill force-triggered by Distributor **pre-route** (before any task routes). Enforces 5 cognitive rules: understand the task / source-anchor every fact / honestly mark uncertainty / pre-delivery self-check / minimal intervention. Cannot be /slash-called directly.
-_Avoid_: self-check, sanity-check (these are softer, less structured)
-
-**Caveman (思考约束 + 输出压缩)**:
-A horizontal discipline + compression skill force-triggered by Distributor at **two** points: (1) **pre-think** (after thinking-first, before routing) — constrains the model's *thinking itself* to 3-5 short points (each ≤10 words), preventing verbose thought generation rather than post-deleting; (2) **post-output** (after Domain skill) — compresses residual verbosity in the final output. Pre-think is the primary lever (it affects AI thought); post-output is the safety net. Cannot be /slash-called directly.
-_Avoid_: summarize, shorten (these are softer, no discipline; caveman constrains thinking, not just output)
-
-**Grill-With-Docs (设计拷问 + ADR 落地)**:
-A horizontal design-interrogation skill force-triggered by Distributor **on-gap** (when match_score < threshold, OR task is design/planning). Runs relentless one-question-at-a-time interrogation, lands each decision as an ADR, and updates the glossary. Cannot be /slash-called directly.
-_Avoid_: brainstorm, design-thinking (these are softer, no ADR discipline)
-
-**Capability (能力)**:
-A category in the domain layer corresponding to a core LLM capability. Five categories: Understanding, Generation, Retrieval, Execution, Decision. Generation includes both implementation skills (`generate-api`, `generate-doc`) and design-specification skills (`api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`).
-_Avoid_: domain, category, area
-
 **Reflection Gate (反射门禁)**:
-A security review pattern where detected risks are injected back into system context, forcing the model to explicitly process (fix / explain / refuse) them before continuing. Does not directly block flow but cannot be silently ignored.
+The mechanism that catches "routed but skipped" hallucination. After Distributor routes a task to skill X and the model produces output, Review checks whether X was actually invoked. If not, it injects a reflection forcing the model to either execute X or explain why it doesn't apply. The model cannot silently ignore the injection. This is anti-hallucination layer 3/3 — no other layer (model, platform, superpowers) catches this.
 _Avoid_: soft block, advisory, warning
 
-**B-Chain (B 链式)**:
-The trigger relationship among the four verticals. `Distributor → Domain` (with Review as horizontal). When Distributor detects a gap (no matching skill), it triggers Builder to create a new skill, which is registered and routed back through Distributor.
-_Avoid_: pipeline, sequential flow, waterfall
+**Anti-hallucination Triad (反幻视三层)**:
+MY_SKILL's core value proposition. Three layers that together prevent "installed but ignored": (1) Distributor session-start injection — model sees all skill descriptions; (2) Distributor routing — model doesn't choose freely, the router picks; (3) Review Reflection Gate — model can't skip what was routed.
+_Avoid_: skill enforcement, invocation guarantee
+
+**Discoverability Guarantee (发现性保证)**:
+Distributor's primary responsibility. At session start, read INDEX.yaml and inject all skill `name` + `description` pairs into context as a manifest. The model cannot claim it did not know a skill existed. This is anti-hallucination layer 1/3.
+_Avoid_: skill listing, menu injection
+
+**Capability (能力)**:
+A category in the domain layer corresponding to a core LLM capability. Five categories: Understanding, Generation, Retrieval, Execution, Decision. The framework supports all five, but only 3 seeds currently exist (decide-invest / ui-design / ux-design) — the rest are imported on demand from the ecosystem.
+_Avoid_: domain, category, area
 
 **Seed (种子技能)**:
-A pre-built skill in the MVP that demonstrates the architecture and provides initial coverage for common tasks. The B-Chain grows the library beyond seeds via gap-triggered creation.
+A skill kept in MY_SKILL because no public ecosystem equivalent exists. v0.1 had 18 seeds; v0.2 kept only 3 (decide-invest, ui-design, ux-design) and removed 15 that overlap with superpowers/mattpocock/platform-native tooling. New skills are added via `importer.py`, not generated internally.
 _Avoid_: starter, template, example
 
 **INDEX.yaml**:
-A lightweight lookup file inside Distributor, listing every skill's `name + risk_level + capability_category + status`. Used for fast routing. Not a separate registry module — frontmatter and Review own the other metadata.
+The skill registry inside Distributor. Lists every skill's `name` + `risk_level` + `category` + `user-invocable` + `path` + `status` + `last_reviewed`. Used for session-start injection and routing. Currently 8 entries (5 meta + 3 domain).
 _Avoid_: registry, catalog, manifest
 
-**Soft Gate (软门禁)**:
-A review pattern that emits advisory output without blocking flow. Used by Code Review and Task Recheck. The model may proceed with the advisory unaddressed.
-_Avoid_: warning, suggestion
-
-**Hard Gate (硬门禁)**:
-A review pattern that blocks flow until the risk is resolved. Used only at the extreme-risk tier of Security Review.
-_Avoid_: blocker, hard stop
+**Gap Detection (缺口检测)**:
+When Distributor's top match composite score falls below the threshold (default 50), it reports a gap — "no installed skill matches; consider importing one with `installer import <repo>` or writing a new SKILL.md". Unlike v0.1, it does NOT auto-trigger a Builder; the user decides.
+_Avoid_: fallback, auto-generation

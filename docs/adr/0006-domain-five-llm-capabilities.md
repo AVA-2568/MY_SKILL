@@ -5,7 +5,7 @@ The domain layer is classified by **LLM capability graph** into 5 categories:
 | Category | Meaning | Example skills |
 |---|---|---|
 | **Understanding** | Read input, parse context, recognize intent | `comprehend-code`, `comprehend-doc` |
-| **Generation** | Produce output: code, documents, interface contracts, architecture, schemas, visual specifications | `generate-api`, `generate-doc`, `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design` |
+| **Generation** | Produce output: code, documents, interface contracts, architecture, schemas, visual specifications | `generate-api`, `generate-doc`, `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design` (+ `writing-great-skills`, `handoff`, `teach` per ADR-0007) |
 | **Retrieval** | Find information, query data, call APIs (incl. analysis) | `retrieve-rag`, `retrieve-sql` |
 | **Execution** | Run commands, manipulate files, invoke tools | `execute-bash`, `execute-git` |
 | **Decision** | Plan, choose, weigh tradeoffs (incl. analysis) | `decide-invest`, `decide-product` |

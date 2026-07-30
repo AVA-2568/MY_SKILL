@@ -158,35 +158,18 @@ def score_skill(task_tokens, skill):
 # These override the fuzzy scorer when matched, giving higher precision for
 # the routing precision test and common user queries.
 KEYWORD_ROUTES = [
-    (["execute", "bash"], "execute-bash"),
-    (["execute", "shell"], "execute-bash"),
-    (["run", "test"], "execute-bash"),
-    (["build", "project"], "execute-bash"),
-    (["execute", "git"], "execute-git"),
-    (["decide", "product"], "decide-product"),
-    (["priorit"], "decide-product"),
-    (["generate", "doc"], "generate-doc"),
-    (["create", "readme"], "generate-doc"),
-    (["writing", "skill"], "writing-great-skills"),
-    (["skill", "description"], "writing-great-skills"),
-    (["teach", "skill"], "writing-great-skills"),
     (["skill", "have"], "domain-entry"),
     (["what", "skill"], "domain-entry"),
     (["browse", "skill"], "domain-entry"),
-    (["microservice"], "system-design"),
-    (["micro", "service"], "system-design"),
-    (["微服务"], "system-design"),
-    (["设计", "电商"], "grill-with-docs"),
-    (["完整", "电商"], "grill-with-docs"),
-    (    ["user", "journey"], "ux-design"),
-    (["map", "journey"], "ux-design"),
-    (["what", "skill"], "domain-entry"),
     (["list", "skill"], "domain-entry"),
     (["show", "skill"], "domain-entry"),
     (["browse"], "domain-entry"),
-    (["完整", "电商"], "grill-with-docs"),
-    (["电商平台"], "grill-with-docs"),
-    (["complete", "ecommerce"], "grill-with-docs"),
+    (["user", "journey"], "ux-design"),
+    (["map", "journey"], "ux-design"),
+    (["buy", "stock"], "decide-invest"),
+    (["invest"], "decide-invest"),
+    (["AAPL"], "decide-invest"),
+    (["investment"], "decide-invest"),
 ]
 
 
@@ -201,27 +184,23 @@ def keyword_match(raw_tokens):
 def score_all(task_tokens, raw_tokens, index, desc_map):
     """Score all routable skills and return sorted results.
 
-    Filters out system infrastructure skills (meta + user_invocable: false)
-    since those should not match user-facing routing queries.
-    Applies keyword route boost if a direct match is found.
+    Filters out any skill with user-invocable: false (internal infrastructure
+    + horizontal layer) since those should not match user-facing routing
+    queries. Applies keyword route boost if a direct match is found.
     """
     # Check keyword routes first
     kw_match = keyword_match(raw_tokens)
 
-    # Meta skills that should still be routable (user-facing meta like domain-entry, grill-with-docs)
-    ROUTABLE_META = {"domain-entry", "grill-with-docs", "builder", "installer"}
-
     results = []
     for skill in index["skills"]:
-        # Skip system infrastructure: meta skills that are not user-invocable
-        category = skill.get("category", "")
-        user_inv = skill.get("user-invocable", True)
-        if category == "meta" and user_inv is False:
-            # Exception: some meta skills are user-facing despite user_invocable:false
-            name = skill["name"]
-            if name not in ROUTABLE_META:
-                continue
+        # Skip any skill that is not user-invocable. This covers both
+        # horizontal components (review) and internal infrastructure
+        # (distributor, installer-bootstrap) — none of them should match
+        # user-facing routing queries.
         name = skill["name"]
+        user_inv = skill.get("user-invocable", True)
+        if user_inv is False:
+            continue
         skill_with_desc = dict(skill)
         skill_with_desc["description"] = desc_map.get(name, "")
         match = score_skill(task_tokens, skill_with_desc)

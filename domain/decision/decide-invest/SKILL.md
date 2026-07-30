@@ -4,7 +4,6 @@ description: "Investment decision advisor — evaluate a potential investment, p
 user-invocable: true
 agent_created: true
 category: decision
-data_layer: references/data-layer.md
 ---
 
 # Decide-Invest (投资决策)

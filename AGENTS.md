@@ -4,31 +4,40 @@ Entry point for AI agents operating in this repository.
 
 ## Mandatory read order
 
-1. **[CONTEXT.md](./CONTEXT.md)** — terminology and ubiquitous language. Read this first to understand what each term means in MY_SKILL's domain.
-2. **[docs/adr/](./docs/adr/)** — read all 7 ADRs to understand the architectural decisions and their rationale.
-3. **[README.md](./README.md)** — high-level architecture diagram and layout.
+1. **[docs/adr/0008-slim-infra-not-content-library.md](./docs/adr/0008-slim-infra-not-content-library.md)** — read this first. It explains why MY_SKILL shifted from content library to skill infrastructure, and supersedes parts of ADRs 0003-0007.
+2. **[CONTEXT.md](./CONTEXT.md)** — terminology and ubiquitous language.
+3. **[docs/adr/](./docs/adr/)** — read all 8 ADRs for full architectural history. ADRs 0001-0007 are historical context; ADR-0008 is the current truth.
+4. **[README.md](./README.md)** — high-level architecture diagram and layout.
 
-## Skills (when implemented)
+## Current architecture (post-v0.2.0)
 
-### 4 Verticals (on-demand)
+MY_SKILL is **skill infrastructure** (registry + installer + router + review), not a content library. It solves two problems:
+1. **N platforms × M skills adaptation** — write/import once, install anywhere.
+2. **Model hallucination** ("installed but ignored") — three-layer anti-hallucination triad.
 
-- **Distributor** (always-active, `user-invocable: false`) — the only always-active vertical; routes tasks and force-triggers the horizontal layer.
-- **Builder, Installer, Domain-entry** — loaded on demand by the agent or by Distributor.
+### Modules (5 meta + 3 domain = 8 total)
 
-### Horizontal Layer (4 components, force-triggered by Distributor)
+- **Distributor** (`always_active`, `user-invocable: false`) — discoverability guarantor (session-start injection) + skill router.
+- **Installer** (`user-invocable: true`) — source-agnostic importer (`importer.py`) + 3-platform adapters + session bootstrap.
+- **domain-entry** (`user-invocable: true`) — browsing entrypoint for the skill registry.
+- **Review** (`user-invocable: false`, `horizontal: true`) — Reflection Gate (catch "routed but skipped") + Lifecycle Governance.
+- **installer-bootstrap** (`user-invocable: false`) — session-start verification.
+- **decide-invest** / **ui-design** / **ux-design** — the only 3 domain seeds (no ecosystem equivalent).
 
-All 4 are `user-invocable: false`; they cannot be /slash-called directly. Distributor invokes them at specific flow points.
+### What was removed in v0.2.0
 
-- **thinking-first** — pre-route cognitive discipline (5 rules: understand / source-anchor / uncertainty / pre-delivery check / minimal intervention)
-- **Review** — per-task (Code Review / Task Recheck / Security Review) + per-skill (Lifecycle Governance)
-- **caveman** — pre-think (constrains *thinking* to 3-5 short points) + post-output (compresses residual verbosity). Two trigger points; pre-think is the primary lever.
-- **grill-with-docs** — on-gap design interrogation + ADR/glossary landing
+- 15 domain seeds with ecosystem equivalents (use `installer import` from superpowers/mattpocock instead).
+- 4 meta modules: `thinking-first`, `caveman`, `grill-with-docs`, `builder`.
+- Review's Code Review + Task Recheck gates (ecosystem's job).
+
+See ADR-0008 for the full rationale.
 
 ## Conventions
 
-- SKILL.md core fields (name, description) must conform to the Anthropic Agent Skills standard (see ADR-0002).
-- Extension fields (risk_level, verifiable, etc.) follow MY_SKILL's own convention; per-platform adapters handle translation.
-- Every skill in `domain/` declares its capability category via frontmatter `category:` (one of understanding / generation / retrieval / execution / decision).
+- SKILL.md core fields (`name`, `description`) conform to the Anthropic Agent Skills standard (see ADR-0002).
+- Extension fields (`risk_level`, `user-invocable`, etc.) follow MY_SKILL's own convention; per-platform adapters handle translation.
+- Every skill in `domain/` declares its category via frontmatter `category:` (one of understanding / generation / retrieval / execution / decision).
+- New skills are added via `importer.py` (from GitHub repos or local paths), not generated internally.
 
 ## Local-first development
 

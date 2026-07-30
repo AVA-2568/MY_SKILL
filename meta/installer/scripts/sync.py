@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Installer sync — translates MY_SKILL → WorkBuddy skill directory.
+"""Installer sync — translates MY_SKILL → platform skill directory.
 
 Usage:
-    python sync.py --target ~/.workbuddy/skills/ [--dry-run]
+    python sync.py --auto-detect                          # detect platform, install
+    python sync.py --target ~/.workbuddy/skills/          # explicit target
+    python sync.py --auto-detect --dry-run                # preview only
+    python sync.py --target /path --force                 # overwrite existing
 
-Reads INDEX.yaml, applies workbuddy adapter rules, writes platform-ready
-SKILL.md files under <target>/<skill-name>/.
+Reads INDEX.yaml, applies platform adapter rules (workbuddy / codex / hermes),
+writes platform-ready SKILL.md files under <target>/<skill-name>/.
+
+Platform directory is a read-only consumer. Edit skills only in the MY_SKILL
+repo (canonical source); re-run sync to propagate changes.
 """
 
 import sys, yaml, shutil, argparse, os
@@ -18,7 +24,49 @@ SKIP_CONFIG = REPO_ROOT / "meta" / "installer" / "skip.yaml"
 # Skills to skip during sync (overlap/conflict with user's existing skills).
 # Loaded from meta/installer/skip.yaml; falls back to this set if the file is
 # missing so sync.py never breaks on a bare checkout.
-DEFAULT_SKIP_LIST = {"thinking-first", "caveman", "decide-invest"}
+DEFAULT_SKIP_LIST = {"decide-invest"}
+
+# MY_SKILL-only extension fields with no platform equivalent. Stripped on install.
+# NOTE: `user-invocable` is intentionally NOT in this list — it is a WorkBuddy
+# native field (hide from menu / callable internally) and must be preserved.
+# Kept in sync with sync_nested.py.STRIP_FIELDS.
+STRIP_FIELDS = [
+    "risk_level", "category", "horizontal", "always_active",
+    "source", "data_layer", "related", "forced_trigger",
+]
+
+# Platform detection table — order matters: first match wins.
+# `detect` is a sentinel file/dir whose presence indicates the platform is
+# installed on this machine. `target` is the default skills directory.
+PLATFORMS = [
+    {
+        "name": "workbuddy",
+        "detect": Path.home() / ".workbuddy",
+        "target": Path.home() / ".workbuddy" / "skills",
+        "adapter": "workbuddy",
+    },
+    {
+        "name": "codex",
+        "detect": Path.home() / ".codex",
+        "target": Path.home() / ".codex" / "skills",
+        "adapter": "codex",
+    },
+    {
+        "name": "hermes",
+        "detect": Path.home() / ".hermes",
+        "target": Path.home() / ".hermes" / "skills",
+        "adapter": "hermes",
+    },
+]
+
+
+def detect_platform():
+    """Return (name, target_dir, adapter_name) for the first detected platform.
+    Returns (None, None, None) if no platform is installed."""
+    for p in PLATFORMS:
+        if p["detect"].exists():
+            return p["name"], p["target"], p["adapter"]
+    return None, None, None
 
 
 def load_skip_list():
@@ -40,23 +88,35 @@ def _copytree_overwrite(src, dst):
             shutil.copy2(item, target)
 
 
-def apply_workbuddy_adapter(frontmatter, body):
-    """Translate extension fields per workbuddy.yaml rules."""
+def apply_workbuddy_adapter(frontmatter, body, index_entry=None):
+    """Translate extension fields per workbuddy.yaml rules.
+
+    - Folds risk_level (from SKILL.md, falling back to INDEX.yaml) into the
+      description as `[risk=...]` when non-low.
+    - Folds `source` attribution into the description when present.
+    - PRESERVES `user-invocable` exactly (no disable-model-invocation swap).
+    - Strips MY_SKILL-only extension fields (STRIP_FIELDS).
+    Kept in sync with sync_nested.py.apply_nested_adapter.
+    """
     fm = dict(frontmatter)
-    # risk_level → append to description
-    risk = fm.get("risk_level", "low")
-    if risk != "low" and "risk" not in fm.get("description", "").lower():
-        fm["description"] = fm.get("description", "") + f" [risk={risk}]"
-    # user-invocable: false → disable-model-invocation: true
-    if fm.get("user-invocable") is False:
-        fm["disable-model-invocation"] = True
-        fm.pop("user-invocable", None)
-    else:
-        fm.pop("user-invocable", None)
-    # Strip MY_SKILL-only fields (keep agent_created so user-level install
-    # survives app's builtin-skill sync/restore)
-    for key in ["risk_level", "category", "horizontal",
-                "always_active", "source", "data_layer", "related"]:
+    idx = index_entry or {}
+
+    # 1) risk -> description tag (fallback to INDEX so drift in SKILL.md is covered)
+    risk = str(fm.get("risk_level") or idx.get("risk_level") or "low").lower()
+    desc = fm.get("description", "") or ""
+    if risk != "low" and f"risk={risk}" not in desc.lower():
+        desc = f"{desc} [risk={risk}]"
+
+    # 2) source attribution -> description (preserve credit, strip the raw field)
+    src = fm.get("source") or idx.get("source")
+    if src and "source:" not in desc.lower() and "来源" not in desc:
+        desc = f"{desc} (source: {src})"
+
+    if desc:
+        fm["description"] = desc
+
+    # 3) strip MY_SKILL-only fields (user-invocable stays)
+    for key in STRIP_FIELDS:
         fm.pop(key, None)
     return fm, body
 
@@ -67,6 +127,7 @@ def sync(target_dir, dry_run=False, force=False):
     skip_list = load_skip_list()
     target = Path(target_dir).expanduser().resolve()
     os.makedirs(target, exist_ok=True)
+    index_by_name = {s["name"]: s for s in index["skills"]}
 
     for skill in index["skills"]:
         name = skill["name"]
@@ -88,7 +149,7 @@ def sync(target_dir, dry_run=False, force=False):
         fm = yaml.safe_load(fm_raw) or {}
         body = text[fm_end + 3:].lstrip()
 
-        new_fm, body = apply_workbuddy_adapter(fm, body)
+        new_fm, body = apply_workbuddy_adapter(fm, body, index_by_name.get(name))
         new_text = "---\n" + yaml.dump(new_fm, allow_unicode=True, sort_keys=False) + "---\n\n" + body
 
         dest_dir = target / name
@@ -111,12 +172,46 @@ def sync(target_dir, dry_run=False, force=False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Sync MY_SKILL to WorkBuddy")
-    parser.add_argument("--target", required=True, help="WorkBuddy skills directory")
+    parser = argparse.ArgumentParser(
+        description="Sync MY_SKILL to a platform skills directory.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""\
+Examples:
+  python sync.py --auto-detect                    # detect platform, install
+  python sync.py --target ~/.workbuddy/skills/    # explicit target
+  python sync.py --auto-detect --dry-run          # preview only
+  python sync.py --target /path --force           # overwrite existing
+""",
+    )
+    parser.add_argument("--target", default=None,
+                        help="Platform skills directory (e.g. ~/.workbuddy/skills/). "
+                             "If omitted with --auto-detect, will be filled in.")
+    parser.add_argument("--auto-detect", action="store_true",
+                        help="Auto-detect installed platform and target directory.")
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no writes")
     parser.add_argument("--force", action="store_true", help="Overwrite existing skills")
     args = parser.parse_args()
-    sync(args.target, args.dry_run, args.force)
+
+    target = args.target
+
+    if args.auto_detect:
+        name, detected_target, adapter = detect_platform()
+        if name is None:
+            print("ERROR: no supported platform detected. "
+                  "Looked for: " + ", ".join(p["name"] for p in PLATFORMS),
+                  file=sys.stderr)
+            print("Pass --target explicitly, e.g. --target ~/.workbuddy/skills/",
+                  file=sys.stderr)
+            sys.exit(1)
+        if target is None:
+            target = str(detected_target)
+        print(f"Detected platform: {name}")
+        print(f"Target directory:  {target}")
+
+    if not target:
+        parser.error("either --target or --auto-detect is required")
+
+    sync(target, args.dry_run, args.force)
 
 
 if __name__ == "__main__":

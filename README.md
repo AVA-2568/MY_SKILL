@@ -2,154 +2,200 @@
 
 [![CI](https://github.com/AVA-2568/MY_SKILL/actions/workflows/validate.yaml/badge.svg)](https://github.com/AVA-2568/MY_SKILL/actions/workflows/validate.yaml)
 [![License: MIT](https://img.shields.io/github/license/AVA-2568/MY_SKILL?label=license)](./LICENSE)
-[![Skills](https://img.shields.io/badge/skills-27-blue)](./meta/distributor/INDEX.yaml)
+[![Skills](https://img.shields.io/badge/skills-8-blue)](./meta/distributor/INDEX.yaml)
 [![Platforms](https://img.shields.io/badge/platforms-workbuddy%20%7C%20codex%20%7C%20hermes-0F6E56)](./docs/adr/0002-protocol-compatible-adapters.md)
 
 # MY_SKILL
 
-A cross-platform AI skill library for WorkBuddy, Codex, and Hermes — built for personal use and continuously reconstructed by an AI agent.
+Skill **infrastructure** for cross-platform AI agents — not another skill library. Solves two problems:
 
-## Highlights
+1. **N platforms × M skills** — import once, install anywhere (workbuddy / codex / hermes).
+2. **Model hallucination** ("installed but ignored") — three-layer anti-hallucination triad.
 
-- **4 verticals + 1 horizontal review layer** — clean separation between routing, building, installing, and the cross-cutting review gate.
-- **Protocol-compatible** — generic `SKILL.md` conforms to the Anthropic Agent Skills standard; per-platform adapters translate to WorkBuddy / Codex / Hermes.
-- **AI-driven deployment** — the `installer` skill does the install; you talk to the agent, you don't type shell commands.
-- **Self-rebuilding** — short on a skill? the `Builder` vertical generates a new one on demand.
+## Why not just use obra/superpowers?
+
+You should — for skills. MY_SKILL doesn't compete on content. It competes on the **pipe**: how skills get registered, discovered, routed, and enforced across platforms. Skills from superpowers, mattpocock/skills, or your own repo all flow through the same infrastructure.
+
+## The anti-hallucination triad
+
+Models ignore installed skills for three reasons. MY_SKILL covers all three:
+
+| Cause | Owner | Mechanism |
+|---|---|---|
+| Model never loaded skill description | Distributor | Session-start injection forces all descriptions into context |
+| Model loaded but mis-routes | Distributor | Keyword routes + fuzzy score pick the match; model doesn't choose freely |
+| Model routed but skipped execution | Review | Reflection Gate re-injects "you mentioned X but did not execute it" |
+
+No other layer (model, platform, superpowers) catches cause 3.
+
+## Sync workflow (cross-machine / cross-platform)
+
+MY_SKILL repo is your personal skill hub. GitHub is the cloud relay. **Core contract: editing happens only in the repo; the platform directory is a read-only consumer.**
+
+### Platform A (edit skills)
+
+1. Edit SKILL.md directly in the MY_SKILL repo (**never edit on the platform side**)
+2. `installer sync` to install to the current platform
+3. `git push` to sync to GitHub
+
+### Platform B (one-shot install)
+
+On a new machine / new agent, tell the model: **"install MY_SKILL"**
+
+The model will automatically:
+1. `git clone https://github.com/AVA-2568/MY_SKILL.git ~/MY_SKILL` (or `git pull` if exists)
+2. Detect the current platform (workbuddy / codex / hermes)
+3. Run `sync.py --auto-detect` to install all skills
+4. Report the result
+
+Or run the script directly:
+```bash
+curl -fsSL https://raw.githubusercontent.com/AVA-2568/MY_SKILL/main/meta/installer/scripts/install.sh | bash
+```
+
+### Key contracts
+
+| Contract | Why |
+|---|---|
+| **Edit only in the repo** | Keeps the canonical source clean; no platform-format pollution flows back |
+| **Platform dir is read-only** | Synced derivatives are overwritten on next sync; don't hand-edit them |
+| **GitHub is the only relay** | Don't transfer skills via USB / email; always go through GitHub |
+
+Under this model **no "denormalization" is needed** — because editing always happens in the repo, the repo stays clean.
 
 ## Architecture
 
-**4 Verticals + 1 Horizontal Layer** (see [ADR-0003](./docs/adr/0003-four-verticals-one-horizontal.md)):
-
 ```
-                       ┌────────────────────────────────────────────────────┐
-                       │   Horizontal Layer (force-triggered by Distributor) │
-                       │  ┌─────────────┐  ┌─────────┐  ┌────────────────┐    │
-                       │  │Review       │  │thinking-│  │grill-with-docs │    │
-                       │  │ code/task/  │  │ first   │  │ (on-gap)       │    │
-                       │  │ security +  │  │(pre)    │  │                │    │
-                       │  │ lifecycle   │  └─────────┘  └────────────────┘    │
-                       │  └─────────────┘  ┌─────────┐                        │
-                       │                    │caveman  │                        │
-                       │                    │(post)   │                        │
-                       │                    └─────────┘                        │
-                       └──────────────────────────┬─────────────────────────┘
-                                                  │ force-triggers at specific flow points
-                                                  ▼
-User task  ──▶  [Distributor]  pre:thinking-first  →  route + risk-score + gap-detect
-                      │ (matched)                              │ (gap)
-                      ▼                                        ▼
-                [Domain]       execute skill         [grill-with-docs] (on-gap)
-                (5 LLM         (5 LLM                                  │
-                 capabilities) capabilities)                          ▼
-                      ▲                                       [Builder] confirm→plan→generate
-                      │ re-route                              ↓
-                [Builder]      confirm → plan → generate   [Distributor] re-route
-                      ▲
-                      │ gap detected
-                      │
-                [Distributor]
-
-                [Installer]    adapter (per platform) +
-                               bootstrap (session activation)
-                — runs alongside, not part of B-Chain runtime —
+External skills (superpowers / mattpocock / your repo)
+    │
+    ▼
+[importer.py] ── pull + normalize frontmatter ──▶ domain/<category>/<name>/
+    │
+    ▼
+[INDEX.yaml] ── registry (8 skills: 5 meta + 3 domain)
+    │
+    ├──▶ [Distributor] session-start: inject all descriptions into context
+    │                  per-task: keyword + fuzzy route to top-1 skill
+    │                        │
+    │                        ▼
+    │                  [Domain skill] executes
+    │                        │
+    │                        ▼
+    │                  [Review] Reflection Gate: did model actually call it?
+    │
+    └──▶ [Installer] adapters/ ── translate to workbuddy/codex/hermes
+                      bootstrap/ ── verify session-start state
 ```
 
-The 4 verticals (Distributor / Builder / Installer / Domain-entry) load on demand. The horizontal layer holds 4 components that the Distributor force-triggers at specific flow points: thinking-first (pre-route) / Review (per-task + per-skill) / caveman (post-route) / grill-with-docs (on-gap).
+## Modules
+
+### Meta (5)
+
+| Module | Role | Invocable |
+|---|---|---|
+| **distributor** | Discoverability guarantor + skill router | `always_active` (not user-invocable) |
+| **installer** | Importer + 3-platform adapters + bootstrap | yes |
+| **installer-bootstrap** | Session-start verification | no (auto on session start) |
+| **domain-entry** | Browse the skill registry | yes |
+| **review** | Reflection Gate + Lifecycle Governance | no (horizontal, force-triggered) |
+
+### Domain (3)
+
+Only skills with **no ecosystem equivalent** are kept as seeds. Everything else is imported on demand.
+
+| Skill | Category | Why kept |
+|---|---|---|
+| `decide-invest` | decision | Financial decision — no public equivalent |
+| `ui-design` | generation | Visual spec output — superpowers does engineering flow, not visual design |
+| `ux-design` | generation | User journey / information architecture — UX-specific |
+
+Import more with: `python meta/installer/scripts/importer.py owner/repo`
 
 ## Decisions
 
 | # | Decision | Status |
 |---|---|---|
 | [0001](./docs/adr/0001-full-autonomous-rebuild.md) | Full autonomous rebuild | accepted |
-| [0002](./docs/adr/0002-protocol-compatible-adapters.md) | Protocol compatible (Anthropic standard) + per-platform adapters | accepted |
-| [0003](./docs/adr/0003-four-verticals-one-horizontal.md) | 4 verticals + 1 horizontal layer (4 components) | accepted |
-| [0004](./docs/adr/0004-review-subsystem.md) | Review subsystem: code / task / security + lifecycle governance + reflection gate | accepted |
-| [0005](./docs/adr/0005-b-chain-vertical-roles.md) | B-Chain trigger + vertical roles | accepted |
-| [0006](./docs/adr/0006-domain-five-llm-capabilities.md) | Domain: 5 LLM capabilities (Understanding / Generation / Retrieval / Execution / Decision) | accepted |
-| [0007](./docs/adr/0007-mvp-minimum-viable.md) | MVP: 8 metadata modules + 18-22 seed skills | accepted |
-
-## Horizontal Layer (4 components, all force-triggered by Distributor)
-
-| Component | Trigger point | Role |
-|---|---|---|
-| **thinking-first** | pre-route | Cognitive discipline — 5 rules: understand / anchor to sources / surface uncertainty / pre-delivery check / minimal intervention |
-| **Review** | per-task + per-skill | Code Review (soft) / Task Recheck (soft) / Security Review (reflective; hard gate on extreme risk) + Lifecycle Governance |
-| **caveman** | pre-think + post-output | Pre-think caps reasoning at 3–5 short points; post-output compresses leftover verbosity. It shapes thinking, not just text. |
-| **grill-with-docs** | on-gap | Design interrogation + ADR/glossary landing |
-
-All 4 are `user-invocable: false` and cannot be triggered via a `/slash` command.
-
-## Domain (5 LLM Capabilities)
-
-| Category | Meaning | Example seed skills |
-|---|---|---|
-| **Understanding** | Read input, parse context, recognize intent | `comprehend-code`, `comprehend-doc` |
-| **Generation** | Produce output — code, documents, interface contracts, architecture, schemas, visual specs, productivity aids | `generate-api`, `generate-doc`, `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`, `writing-great-skills`, `handoff`, `teach` |
-| **Retrieval** | Find information, query data, call APIs (analysis included) | `retrieve-rag`, `retrieve-sql` |
-| **Execution** | Run commands, manipulate files, invoke tools | `execute-bash`, `execute-git` |
-| **Decision** | Plan, choose, weigh tradeoffs (analysis included) | `decide-invest`, `decide-product` |
-
-Lifecycle governance lives in Review (horizontal), not in Domain.
-
-> **`Domain` vs `domain-entry`**: `domain/` holds the **execution units** (the 18 seed skills, routed by Distributor at runtime). `domain-entry` is a **browsing entrypoint** skill (on-demand, `user-invocable: true`) — it only lists categories/skills for the user; actual routing still goes through Distributor's risk-score + match logic. The two are not the same node; the architecture diagram's `[Domain]` box refers to the execution units, not the `domain-entry` skill.
-
-## Glossary
-
-See [CONTEXT.md](./CONTEXT.md) for the canonical term definitions.
+| [0002](./docs/adr/0002-protocol-compatible-adapters.md) | Protocol compatible + per-platform adapters | accepted |
+| [0003](./docs/adr/0003-four-verticals-one-horizontal.md) | 4 verticals + 1 horizontal layer | superseded by 0008 |
+| [0004](./docs/adr/0004-review-subsystem.md) | Review subsystem (3 gates + lifecycle) | superseded by 0008 |
+| [0005](./docs/adr/0005-b-chain-vertical-roles.md) | B-Chain trigger + vertical roles | superseded by 0008 |
+| [0006](./docs/adr/0006-domain-five-llm-capabilities.md) | Domain: 5 LLM capabilities | superseded by 0008 |
+| [0007](./docs/adr/0007-mvp-minimum-viable.md) | MVP: 8 modules + 18 seeds | superseded by 0008 |
+| [0008](./docs/adr/0008-slim-infra-not-content-library.md) | **Slim infrastructure, not content library** | **accepted (current)** |
 
 ## Layout
 
 ```
 MY_SKILL/
-├── docs/adr/                # Architecture Decision Records
+├── docs/adr/                # 8 ADRs (0008 is current truth)
 ├── CONTEXT.md               # Glossary / ubiquitous language
-├── meta/                    # 8 metadata modules (4V + 1H layer)
-│   ├── distributor/         # vertical: route + risk-score + gap-detect (force-triggers horizontal layer)
+├── meta/                    # 5 metadata modules
+│   ├── distributor/         # discoverability guarantor + router
 │   │   ├── SKILL.md
-│   │   └── INDEX.yaml       # 27-skill registry (8 modules + installer-bootstrap + 18 domain) + routing config + lifecycle governance
-│   ├── builder/             # vertical: confirm → plan → generate
-│   ├── installer/           # vertical: adapters/ + bootstrap/
-│   │   ├── adapters/        # per-platform translation (workbuddy/codex/hermes)
-│   │   └── bootstrap/       # session activation (only distributor is always-active)
-│   ├── domain-entry/        # vertical: 5-category domain registry entrypoint
-│   ├── review/              # horizontal: per-task + per-skill scopes
-│   ├── thinking-first/      # horizontal: pre-route cognitive discipline
-│   ├── caveman/             # horizontal: pre-think constraint + post-output compression
-│   └── grill-with-docs/     # horizontal: on-gap design interrogation + ADR landing
-├── domain/                  # 5 LLM-capability categories of skills (18 seeds: 2+10+2+2+2)
-│   ├── understanding/
-│   ├── generation/           # implementation, design specs, productivity aids (10 skills)
-│   ├── retrieval/
-│   ├── execution/
-│   └── decision/
+│   │   ├── INDEX.yaml       # 8-skill registry + routing + lifecycle config
+│   │   └── scripts/score.py # keyword + fuzzy router
+│   ├── installer/           # importer + adapters + bootstrap
+│   │   ├── scripts/
+│   │   │   ├── sync.py      # install to platforms (supports --auto-detect)
+│   │   │   ├── sync_nested.py
+│   │   │   ├── importer.py  # pull skills from GitHub/local
+│   │   │   └── install.sh   # one-shot install (clone + sync)
+│   │   ├── adapters/        # workbuddy.yaml / codex.yaml / hermes.yaml
+│   │   └── bootstrap/       # session-start verification
+│   ├── domain-entry/        # browsing entrypoint
+│   └── review/              # Reflection Gate + Lifecycle
+├── domain/                  # 3 seed skills (no ecosystem equivalent)
+│   ├── decision/decide-invest/
+│   └── generation/{ui-design,ux-design}/
+├── tests/fixtures/          # route-cases.yaml
 ├── AGENTS.md                # Agent entrypoint
 └── README.md
 ```
 
-## Deployment
+## Usage
 
-Deployment is **AI-driven**: the `installer` vertical does the work — you don't type shell commands. MY_SKILL is cross-platform; `installer` translates a generic `SKILL.md` into each platform's format via `meta/installer/adapters/` (workbuddy / codex / hermes). At session start, `bootstrap/` auto-verifies the registry.
+### One-shot install (new machine)
 
-**Invoke it by talking to the agent, not the shell:**
+```bash
+# Run when the model says "install MY_SKILL"; or directly:
+curl -fsSL https://raw.githubusercontent.com/AVA-2568/MY_SKILL/main/meta/installer/scripts/install.sh | bash
 
-- Slash command: `/installer sync` — install every skill to the default platform.
-- Natural language: "把 MY_SKILL 装到 WorkBuddy" / "install MY_SKILL to WorkBuddy".
-- Single skill: `/installer install <skill-name> --platform=workbuddy`.
+# Or manually:
+bash meta/installer/scripts/install.sh
+```
 
-The agent reads `INDEX.yaml`, applies the platform adapter, writes each skill to the target, and reports skips/conflicts. Full safety rules, skip-list (`thinking-first` / `caveman` / `decide-invest`), and `--force`: [docs/INSTALL.md](./docs/INSTALL.md).
+### Import skills from any repo
 
-> `codex` / `hermes` adapters ship as `meta/installer/adapters/*.yaml`. The WorkBuddy path is the only automated installer today; port `sync.py` per adapter to reach other platforms. Running `sync.py` by hand is an escape hatch for when no agent is available.
+```bash
+python meta/installer/scripts/importer.py obra/superpowers          # scan whole repo
+python meta/installer/scripts/importer.py mattpocock/skills/productivity/handoff
+python meta/installer/scripts/importer.py --local /path/to/my/skill --category generation
+```
+
+### Install to current platform
+
+```bash
+python meta/installer/scripts/sync.py --auto-detect          # auto-detect platform
+python meta/installer/scripts/sync.py --target ~/.workbuddy/skills/
+```
+
+Or talk to the agent: "install MY_SKILL to WorkBuddy" / "把 MY_SKILL 装到 WorkBuddy".
+
+### Route tasks
+
+Distributor runs automatically on every session + every task. No manual invocation needed.
 
 ## Documentation
 
 | Doc | Purpose |
 |---|---|
-| [README.md](./README.md) | Architecture diagram + repo layout (English) |
-| [README.zh-CN.md](./README.zh-CN.md) | 中文版 (Chinese) |
+| [README.md](./README.md) | Architecture + layout (this file, English) |
+| [README.zh-CN.md](./README.zh-CN.md) | 中文版 |
 | [CONTEXT.md](./CONTEXT.md) | Glossary / ubiquitous language |
 | [AGENTS.md](./AGENTS.md) | Agent read order when working in this repo |
 | [docs/INSTALL.md](./docs/INSTALL.md) | Install / deploy skills to a platform |
-| [docs/adr/](./docs/adr/) | 7 architecture decision records (Q1–Q7) |
+| [docs/adr/0008](./docs/adr/0008-slim-infra-not-content-library.md) | Current architectural truth |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | AI agent contribution guidelines |
 | [CHANGELOG.md](./CHANGELOG.md) | Version history |
 | [LICENSE](./LICENSE) | MIT |

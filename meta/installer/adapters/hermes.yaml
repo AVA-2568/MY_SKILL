@@ -19,7 +19,7 @@ extension_fields:
   category:
     native: true
     target: metadata.hermes.tags
-  user_invocable_false:
+  user-invocable-false:
     native: false
     transform: enforce via description ("Do not invoke unless called by distributor") + rely on orchestrator gating
   always_active:

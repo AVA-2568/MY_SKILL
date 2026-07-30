@@ -2,152 +2,200 @@
 
 [![CI](https://github.com/AVA-2568/MY_SKILL/actions/workflows/validate.yaml/badge.svg)](https://github.com/AVA-2568/MY_SKILL/actions/workflows/validate.yaml)
 [![License: MIT](https://img.shields.io/github/license/AVA-2568/MY_SKILL?label=license)](./LICENSE)
-[![Skills](https://img.shields.io/badge/skills-27-blue)](./meta/distributor/INDEX.yaml)
+[![Skills](https://img.shields.io/badge/skills-8-blue)](./meta/distributor/INDEX.yaml)
 [![Platforms](https://img.shields.io/badge/platforms-workbuddy%20%7C%20codex%20%7C%20hermes-0F6E56)](./docs/adr/0002-protocol-compatible-adapters.md)
 
 # MY_SKILL
 
-跨平台 AI 技能库，面向 WorkBuddy、Codex、Hermes —— 自用，且由 AI 持续自主重构。
+跨平台 AI agent 的技能**基础设施**——不是又一个 skill 库。解决两件事：
 
-## 亮点
+1. **N 平台 × M 技能**——一次导入，到处安装（workbuddy / codex / hermes）。
+2. **模型幻视**（"装了但被忽略"）——三层反幻视机制。
 
-- **4 纵 1 横审查层** —— 路由、构建、安装与横切审查门禁职责清晰分离。
-- **协议兼容** —— 通用 `SKILL.md` 遵循 Anthropic Agent Skills 标准；跨平台适配器翻译到 WorkBuddy / Codex / Hermes。
-- **AI 驱动部署** —— 由 `installer` 技能执行安装，你只需告诉 agent，无需敲命令。
-- **自重构** —— 缺某个技能？`Builder` 纵向模块按需生成新的。
+## 为什么不直接用 obra/superpowers？
+
+技能层面你应该用 superpowers。MY_SKILL 不在内容上竞争，它在**管道**上竞争：skill 如何被注册、发现、路由、强制执行，并跨平台同步。来自 superpowers、mattpocock/skills 或你自己 repo 的 skill，都走同一套基础设施。
+
+## 反幻视三层
+
+模型忽略已装 skill 有三个根因，MY_SKILL 全覆盖：
+
+| 根因 | 负责 | 机制 |
+|---|---|---|
+| 模型根本没加载 skill description | Distributor | session 启动时把所有 description 注入 context |
+| 模型加载了但路由不准 | Distributor | keyword 路由 + fuzzy 评分选 top-1，模型不自由选 |
+| 模型选了但跳过执行 | Review | Reflection Gate 反射注入"你提到了 X 但没执行" |
+
+没有任何其他层（模型 / 平台 / superpowers）覆盖第 3 类。
+
+## 同步工作流（跨机器 / 跨平台）
+
+MY_SKILL repo 是你的个人 skill hub，GitHub 是云端中转。**核心约定：编辑只在 repo 发生，平台目录是只读消费者。**
+
+### 平台 A（编辑 skill）
+
+1. 直接改 MY_SKILL repo 里的 SKILL.md（**不要在平台端改**）
+2. `installer sync` 装到当前平台
+3. `git push` 同步到 GitHub
+
+### 平台 B（一键安装）
+
+在新机器 / 新 agent 上，对模型说一句：**"帮我安装 MY_SKILL"**
+
+模型会自动：
+1. `git clone https://github.com/AVA-2568/MY_SKILL.git ~/MY_SKILL`（已存在则 `git pull`）
+2. 探测当前平台（workbuddy / codex / hermes）
+3. `sync.py --auto-detect` 装好所有 skill
+4. 报告安装结果
+
+也可以直接跑脚本：
+```bash
+curl -fsSL https://raw.githubusercontent.com/AVA-2568/MY_SKILL/main/meta/installer/scripts/install.sh | bash
+```
+
+### 关键约定
+
+| 约定 | 为什么 |
+|---|---|
+| **编辑只在 repo 发生** | 保证 canonical 源干净，不会把平台格式污染带回 repo |
+| **平台端是只读消费者** | sync 出来的派生品不要手改，下次 sync 会覆盖 |
+| **GitHub 是唯一中转** | 不要用 U 盘 / 邮件传 skill，永远走 GitHub |
+
+这个模式下**不需要"反标准化"**——因为编辑永远在 repo 里发生，repo 保持干净。
 
 ## 架构
 
-**4 纵 1 横**（见 [ADR-0003](./docs/adr/0003-four-verticals-one-horizontal.md)）：
-
 ```
-                       ┌────────────────────────────────────────────────────┐
-                       │   Horizontal Layer (force-triggered by Distributor) │
-                       │  ┌─────────────┐  ┌─────────┐  ┌────────────────┐    │
-                       │  │Review       │  │thinking-│  │grill-with-docs │    │
-                       │  │ code/task/  │  │ first   │  │ (on-gap)       │    │
-                       │  │ security +  │  │(pre)    │  │                │    │
-                       │  │ lifecycle   │  └─────────┘  └────────────────┘    │
-                       │  └─────────────┘  ┌─────────┐                        │
-                       │                    │caveman  │                        │
-                       │                    │(post)   │                        │
-                       │                    └─────────┘                        │
-                       └──────────────────────────┬─────────────────────────┘
-                                                  │ force-triggers at specific flow points
-                                                  ▼
-User task  ──▶  [Distributor]  pre:thinking-first  →  route + risk-score + gap-detect
-                      │ (matched)                              │ (gap)
-                      ▼                                        ▼
-                [Domain]       execute skill         [grill-with-docs] (on-gap)
-                (5 LLM         (5 LLM                                  │
-                 capabilities) capabilities)                          ▼
-                      ▲                                       [Builder] confirm→plan→generate
-                      │ re-route                              ↓
-                [Builder]      confirm → plan → generate   [Distributor] re-route
-                      ▲
-                      │ gap detected
-                      │
-                [Distributor]
-
-                [Installer]    adapter (per platform) +
-                               bootstrap (session activation)
-                — runs alongside, not part of B-Chain runtime —
+外部 skill（superpowers / mattpocock / 你的 repo）
+    │
+    ▼
+[importer.py] ── 拉取 + 标准化 frontmatter ──▶ domain/<category>/<name>/
+    │
+    ▼
+[INDEX.yaml] ── 注册表（8 个 skill：5 meta + 3 domain）
+    │
+    ├──▶ [Distributor] session 启动：注入所有 description 到 context
+    │                  每个任务：keyword + fuzzy 路由到 top-1 skill
+    │                        │
+    │                        ▼
+    │                  [Domain skill] 执行
+    │                        │
+    │                        ▼
+    │                  [Review] Reflection Gate：模型真的调用了吗？
+    │
+    └──▶ [Installer] adapters/ ── 翻译到 workbuddy/codex/hermes
+                      bootstrap/ ── 校验 session 启动状态
 ```
 
-4 个纵向模块（Distributor / Builder / Installer / Domain-entry）按需加载。横向层含 4 个组件，由 Distributor 在特定流程点强制触发：thinking-first（路由前）/ Review（每任务 + 每技能）/ caveman（输出后）/ grill-with-docs（缺口时）。
+## 模块
+
+### Meta（5 个）
+
+| 模块 | 角色 | 可调用 |
+|---|---|---|
+| **distributor** | 发现保证器 + skill 路由器 | `always_active`（不可用户调用） |
+| **installer** | 导入器 + 3 平台适配器 + bootstrap | 是 |
+| **installer-bootstrap** | session 启动校验 | 否（启动时自动） |
+| **domain-entry** | 浏览 skill 注册表 | 是 |
+| **review** | Reflection Gate + 生命周期治理 | 否（horizontal，强制触发） |
+
+### Domain（3 个）
+
+只保留**没有生态等价物**的 skill，其他按需导入。
+
+| skill | 类别 | 为什么保留 |
+|---|---|---|
+| `decide-invest` | decision | 金融决策——无公开等价物 |
+| `ui-design` | generation | 视觉规格输出——superpowers 做工程流不做视觉设计 |
+| `ux-design` | generation | user journey / 信息架构——UX 专属 |
+
+导入更多：`python meta/installer/scripts/importer.py owner/repo`
 
 ## 决策
 
 | # | 决策 | 状态 |
 |---|---|---|
 | [0001](./docs/adr/0001-full-autonomous-rebuild.md) | 完全自主重建 | 已采纳 |
-| [0002](./docs/adr/0002-protocol-compatible-adapters.md) | 协议兼容（Anthropic 标准）+ 跨平台适配器 | 已采纳 |
-| [0003](./docs/adr/0003-four-verticals-one-horizontal.md) | 4 纵 1 横（4 组件） | 已采纳 |
-| [0004](./docs/adr/0004-review-subsystem.md) | 审查子系统：代码 / 任务 / 安全 + 生命周期治理 + 反射门禁 | 已采纳 |
-| [0005](./docs/adr/0005-b-chain-vertical-roles.md) | B-Chain 触发 + 纵向角色 | 已采纳 |
-| [0006](./docs/adr/0006-domain-five-llm-capabilities.md) | 领域：5 类 LLM 能力（理解 / 生成 / 检索 / 执行 / 决策） | 已采纳 |
-| [0007](./docs/adr/0007-mvp-minimum-viable.md) | MVP：8 元模块 + 18-22 种子技能 | 已采纳 |
-
-## 横向层（4 组件，全部由 Distributor 强制触发）
-
-| 组件 | 触发点 | 角色 |
-|---|---|---|
-| **thinking-first** | 路由前 | 认知纪律 —— 5 条规则：理解 / 来源锚定 / 坦诚不确定性 / 交付前自检 / 最小干预 |
-| **Review** | 每任务 + 每技能 | 代码审查（软）/ 任务复查（软）/ 安全审查（反思式；极高风险硬门禁）+ 生命周期治理 |
-| **caveman** | 思考前 + 输出后 | 思考前将推理压缩为 3–5 个要点；输出后精简多余内容。它塑造的是思考，不只是文字。 |
-| **grill-with-docs** | 缺口时 | 设计诘问 + ADR/术语落地 |
-
-4 个均为 `user-invocable: false`，无法通过 /slash 命令直接调用。
-
-## 领域（5 类 LLM 能力）
-
-| 类别 | 含义 | 示例种子技能 |
-|---|---|---|
-| **Understanding 理解** | 读取输入、解析上下文、识别意图 | `comprehend-code`, `comprehend-doc` |
-| **Generation 生成** | 产出内容 —— 代码、文档、接口契约、架构、schema、视觉规范、效率工具 | `generate-api`, `generate-doc`, `api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`, `writing-great-skills`, `handoff`, `teach` |
-| **Retrieval 检索** | 查找信息、查询数据、调用 API（含分析） | `retrieve-rag`, `retrieve-sql` |
-| **Execution 执行** | 运行命令、操作文件、调用工具 | `execute-bash`, `execute-git` |
-| **Decision 决策** | 规划、选择、权衡取舍（含分析） | `decide-invest`, `decide-product` |
-
-生命周期治理归属横向层的 Review，而非领域层。
-
-## 术语表
-
-术语定义见 [CONTEXT.md](./CONTEXT.md)。
+| [0002](./docs/adr/0002-protocol-compatible-adapters.md) | 协议兼容 + 跨平台适配器 | 已采纳 |
+| [0003](./docs/adr/0003-four-verticals-one-horizontal.md) | 4 纵 1 横 | 被 0008 取代 |
+| [0004](./docs/adr/0004-review-subsystem.md) | 审查子系统（3 门禁 + lifecycle） | 被 0008 取代 |
+| [0005](./docs/adr/0005-b-chain-vertical-roles.md) | B-Chain 触发 + 纵向角色 | 被 0008 取代 |
+| [0006](./docs/adr/0006-domain-five-llm-capabilities.md) | 领域：5 类 LLM 能力 | 被 0008 取代 |
+| [0007](./docs/adr/0007-mvp-minimum-viable.md) | MVP：8 模块 + 18 种子 | 被 0008 取代 |
+| [0008](./docs/adr/0008-slim-infra-not-content-library.md) | **精简基础设施，不做内容库** | **已采纳（当前）** |
 
 ## 目录结构
 
 ```
 MY_SKILL/
-├── docs/adr/                # Architecture Decision Records
-├── CONTEXT.md               # Glossary / ubiquitous language
-├── meta/                    # 8 metadata modules (4V + 1H layer)
-│   ├── distributor/         # vertical: route + risk-score + gap-detect (force-triggers horizontal layer)
+├── docs/adr/                # 8 份 ADR（0008 是当前事实）
+├── CONTEXT.md               # 术语表 / 统一语言
+├── meta/                    # 5 个 metadata 模块
+│   ├── distributor/         # 发现保证器 + 路由器
 │   │   ├── SKILL.md
-│   │   └── INDEX.yaml       # 27-skill registry (8 modules + installer-bootstrap + 18 domain) + routing config + lifecycle governance
-│   ├── builder/             # vertical: confirm → plan → generate
-│   ├── installer/           # vertical: adapters/ + bootstrap/
-│   │   ├── adapters/        # per-platform translation (workbuddy/codex/hermes)
-│   │   └── bootstrap/       # session activation (only distributor is always-active)
-│   ├── domain-entry/        # vertical: 5-category domain registry entrypoint
-│   ├── review/              # horizontal: per-task + per-skill scopes
-│   ├── thinking-first/      # horizontal: pre-route cognitive discipline
-│   ├── caveman/             # horizontal: pre-think constraint + post-output compression
-│   └── grill-with-docs/     # horizontal: on-gap design interrogation + ADR landing
-├── domain/                  # 5 LLM-capability categories of skills (18 seeds: 2+10+2+2+2)
-│   ├── understanding/
-│   ├── generation/           # implementation, design specs, productivity aids (10 skills)
-│   ├── retrieval/
-│   ├── execution/
-│   └── decision/
-├── AGENTS.md                # Agent entrypoint
+│   │   ├── INDEX.yaml       # 8-skill 注册表 + 路由 + lifecycle 配置
+│   │   └── scripts/score.py # keyword + fuzzy 路由器
+│   ├── installer/           # 导入器 + 适配器 + bootstrap
+│   │   ├── scripts/
+│   │   │   ├── sync.py      # 装到平台（支持 --auto-detect）
+│   │   │   ├── sync_nested.py
+│   │   │   ├── importer.py  # 从 GitHub / 本地拉取 skill
+│   │   │   └── install.sh   # 一键安装（clone + sync）
+│   │   ├── adapters/        # workbuddy.yaml / codex.yaml / hermes.yaml
+│   │   └── bootstrap/       # session 启动校验
+│   ├── domain-entry/        # 浏览入口
+│   └── review/              # Reflection Gate + 生命周期治理
+├── domain/                  # 3 个种子 skill（无生态等价物）
+│   ├── decision/decide-invest/
+│   └── generation/{ui-design,ux-design}/
+├── tests/fixtures/          # route-cases.yaml
+├── AGENTS.md                # Agent 入口
 └── README.md
 ```
 
-## 部署
+## 用法
 
-部署是 **AI 驱动** 的：由 `installer` 纵向模块执行，你不必在终端敲命令。MY_SKILL 跨平台——`installer` 通过 `meta/installer/adapters/`（workbuddy / codex / hermes）把通用 `SKILL.md` 翻译成各平台专属格式。会话启动时，`bootstrap/` 自动校验注册表。
+### 一键安装（新机器）
 
-**用自然语言告诉 agent，而不是在 shell 里敲命令：**
+```bash
+# 模型说"帮我安装 MY_SKILL"时跑这个；或直接：
+curl -fsSL https://raw.githubusercontent.com/AVA-2568/MY_SKILL/main/meta/installer/scripts/install.sh | bash
 
-- 斜杠命令：`/installer sync` —— 安装所有技能到默认平台。
-- 自然语言："把 MY_SKILL 装到 WorkBuddy" / "install MY_SKILL to WorkBuddy"。
-- 单个技能：`/installer install <skill-name> --platform=workbuddy`。
+# 也可以手动：
+bash meta/installer/scripts/install.sh
+```
 
-agent 读取 `INDEX.yaml`、套用平台适配器、将每个技能写入目标目录，并汇报跳过/冲突。完整安全规则、跳过清单（`thinking-first` / `caveman` / `decide-invest`）与 `--force` 见 [docs/INSTALL.md](./docs/INSTALL.md)。
+### 从任意 repo 导入 skill
 
-> `codex` / `hermes` 适配器以 `meta/installer/adapters/*.yaml` 形式提供。目前 WorkBuddy 路径是唯一自动化安装器；要覆盖其他平台，需按对应适配器移植 `sync.py`。仅在无 agent 可用时，才手动运行 `sync.py` 作为兜底。
+```bash
+python meta/installer/scripts/importer.py obra/superpowers          # 扫整个 repo
+python meta/installer/scripts/importer.py mattpocock/skills/productivity/handoff
+python meta/installer/scripts/importer.py --local /path/to/my/skill --category generation
+```
+
+### 装到当前平台
+
+```bash
+python meta/installer/scripts/sync.py --auto-detect          # 自动探测平台
+python meta/installer/scripts/sync.py --target ~/.workbuddy/skills/
+```
+
+或者告诉 agent："install MY_SKILL to WorkBuddy" / "把 MY_SKILL 装到 WorkBuddy"。
+
+### 路由任务
+
+Distributor 在每个 session + 每个任务上自动跑。无需手动调用。
 
 ## 文档
 
 | 文档 | 用途 |
 |---|---|
-| [README.md](./README.md) | 架构图 + 仓库结构（英文版） |
+| [README.md](./README.md) | 架构 + 目录结构（英文） |
 | [README.zh-CN.md](./README.zh-CN.md) | 中文版（本文件） |
 | [CONTEXT.md](./CONTEXT.md) | 术语表 / 统一语言 |
 | [AGENTS.md](./AGENTS.md) | agent 在本仓库的阅读顺序 |
-| [docs/INSTALL.md](./docs/INSTALL.md) | 安装 / 部署技能到平台 |
-| [docs/adr/](./docs/adr/) | 7 份架构决策记录（Q1–Q7） |
+| [docs/INSTALL.md](./docs/INSTALL.md) | 安装 / 部署 skill 到平台 |
+| [docs/adr/0008](./docs/adr/0008-slim-infra-not-content-library.md) | 当前架构事实 |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | AI agent 贡献指南 |
 | [CHANGELOG.md](./CHANGELOG.md) | 版本历史 |
 | [LICENSE](./LICENSE) | MIT |

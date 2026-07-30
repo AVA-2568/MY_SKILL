@@ -6,9 +6,9 @@ Why a second script (vs. sync.py)?
     sync.py flattens skills into <target>/<name>/ and, critically, converts
     `user-invocable: false` -> `disable-model-invocation: true`. That conversion
     is WRONG for WorkBuddy: disable-model-invocation:true prevents the AI from
-    auto-selecting the skill, which would break Distributor's force-trigger of the
-    horizontal discipline skills (caveman/thinking-first/review/...). WorkBuddy's
-    native `user-invocable: false` already means "hidden from /slash menu but
+    auto-selecting the skill, which would break Distributor's internal use of
+    user-invocable:false skills (review/...). WorkBuddy's native
+    `user-invocable: false` already means "hidden from /slash menu but
     callable by the AI / other skills" — exactly what MY_SKILL needs.
 
     sync_nested.py keeps the full directory tree
@@ -18,7 +18,7 @@ Usage:
     # dry-run preview (no writes)
     python sync_nested.py --dry-run
 
-    # install all 27 skills into ~/.workbuddy/skills/MY_SKILL
+    # install all skills into ~/.workbuddy/skills/MY_SKILL
     python sync_nested.py --force
 
     # install into a custom target, skipping the skip-list skills
@@ -39,7 +39,7 @@ SKIP_CONFIG = REPO_ROOT / "meta" / "installer" / "skip.yaml"
 DEFAULT_TARGET = Path.home() / ".workbuddy" / "skills" / "MY_SKILL"
 
 # Deployment policy lives in skip.yaml (ADR-0002 purity), not in adapter logic.
-DEFAULT_SKIP_LIST = {"thinking-first", "caveman", "decide-invest"}
+DEFAULT_SKIP_LIST = {"decide-invest"}
 
 # MY_SKILL-only extension fields with no WorkBuddy equivalent. Stripped on install.
 # NOTE: `user-invocable` is intentionally NOT in this list — it is a WorkBuddy

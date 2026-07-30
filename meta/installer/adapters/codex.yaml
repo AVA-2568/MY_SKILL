@@ -19,7 +19,7 @@ extension_fields:
   category:
     native: true
     target: metadata.category
-  user_invocable_false:
+  user-invocable-false:
     native: true
     target: "disable-model-invocation: true"      # Codex native field
   always_active:

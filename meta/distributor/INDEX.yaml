@@ -6,207 +6,65 @@ skills:
   always_active: true
   path: meta/distributor
   status: active
-  last_reviewed: '2026-07-27'
-- name: builder
-  category: meta
-  risk_level: low
-  user-invocable: true
-  path: meta/builder
-  status: active
-  last_reviewed: '2026-07-27'
+  last_reviewed: '2026-07-30'
 - name: installer
   category: meta
   risk_level: mid
   user-invocable: true
   path: meta/installer
   status: active
-  last_reviewed: '2026-07-27'
+  last_reviewed: '2026-07-30'
 - name: installer-bootstrap
   category: meta
   risk_level: low
   user-invocable: false
   path: meta/installer/bootstrap
   status: active
-  last_reviewed: '2026-07-27'
+  last_reviewed: '2026-07-30'
 - name: domain-entry
   category: meta
   risk_level: low
   user-invocable: true
   path: meta/domain-entry
   status: active
-  last_reviewed: '2026-07-27'
+  last_reviewed: '2026-07-30'
 - name: review
   category: meta
   risk_level: low
   user-invocable: false
-  always_active: true
   horizontal: true
   path: meta/review
   status: active
-  last_reviewed: '2026-07-27'
-- name: thinking-first
-  category: meta
-  risk_level: low
-  user-invocable: false
-  forced_trigger: distributor-pre
-  path: meta/thinking-first
-  status: active
-  last_reviewed: '2026-07-27'
-- name: caveman
-  category: meta
-  risk_level: low
-  user-invocable: false
-  forced_trigger: distributor-pre-think + distributor-post-output
-  path: meta/caveman
-  status: active
-  last_reviewed: '2026-07-27'
-- name: grill-with-docs
-  category: meta
-  risk_level: low
-  user-invocable: false
-  forced_trigger: distributor-gap
-  path: meta/grill-with-docs
-  status: active
-  last_reviewed: '2026-07-27'
-- name: comprehend-code
-  category: understanding
-  risk_level: low
-  user-invocable: true
-  path: domain/understanding/comprehend-code
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: comprehend-doc
-  category: understanding
-  risk_level: low
-  user-invocable: true
-  path: domain/understanding/comprehend-doc
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: generate-api
-  category: generation
-  risk_level: low
-  user-invocable: true
-  path: domain/generation/generate-api
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: api-design
-  category: generation
-  risk_level: low
-  user-invocable: true
-  path: domain/generation/api-design
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: system-design
-  category: generation
-  risk_level: mid
-  user-invocable: true
-  path: domain/generation/system-design
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: database-design
-  category: generation
-  risk_level: mid
-  user-invocable: true
-  path: domain/generation/database-design
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: ui-design
-  category: generation
-  risk_level: low
-  user-invocable: true
-  path: domain/generation/ui-design
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: ux-design
-  category: generation
-  risk_level: low
-  user-invocable: true
-  path: domain/generation/ux-design
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: generate-doc
-  category: generation
-  risk_level: low
-  user-invocable: true
-  path: domain/generation/generate-doc
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: writing-great-skills
-  category: generation
-  risk_level: low
-  user-invocable: false
-  path: domain/generation/writing-great-skills
-  status: seed
-  source: "mattpocock/skills (MIT) — productivity/writing-great-skills; frontmatter adapted"
-  last_reviewed: '2026-07-27'
-- name: handoff
-  category: generation
-  risk_level: mid
-  user-invocable: false
-  path: domain/generation/handoff
-  status: seed
-  source: "mattpocock/skills (MIT) — productivity/handoff; frontmatter adapted"
-  last_reviewed: '2026-07-27'
-- name: teach
-  category: generation
-  risk_level: mid
-  user-invocable: false
-  path: domain/generation/teach
-  status: seed
-  source: "mattpocock/skills (MIT) — productivity/teach; frontmatter adapted"
-  last_reviewed: '2026-07-27'
-- name: retrieve-rag
-  category: retrieval
-  risk_level: low
-  user-invocable: true
-  path: domain/retrieval/retrieve-rag
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: retrieve-sql
-  category: retrieval
-  risk_level: mid
-  user-invocable: true
-  path: domain/retrieval/retrieve-sql
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: execute-bash
-  category: execution
-  risk_level: mid
-  user-invocable: true
-  path: domain/execution/execute-bash
-  status: seed
-  last_reviewed: '2026-07-27'
-- name: execute-git
-  category: execution
-  risk_level: mid
-  user-invocable: true
-  path: domain/execution/execute-git
-  status: seed
-  last_reviewed: '2026-07-27'
+  last_reviewed: '2026-07-30'
 - name: decide-invest
   category: decision
   risk_level: mid
   user-invocable: true
   path: domain/decision/decide-invest
   status: seed
-  last_reviewed: '2026-07-27'
-- name: decide-product
-  category: decision
-  risk_level: mid
+  last_reviewed: '2026-07-30'
+- name: ui-design
+  category: generation
+  risk_level: low
   user-invocable: true
-  path: domain/decision/decide-product
+  path: domain/generation/ui-design
   status: seed
-  last_reviewed: '2026-07-27'
+  last_reviewed: '2026-07-30'
+- name: ux-design
+  category: generation
+  risk_level: low
+  user-invocable: true
+  path: domain/generation/ux-design
+  status: seed
+  last_reviewed: '2026-07-30'
 routing:
   match_threshold: 50
   risk_penalty:
     low: 0
     mid: -10
-    high: -30   # reserved tier: no seed currently uses it. For extreme-risk skills
-                # (e.g. destructive ops). The -30 penalty is strong by design — only
-                # assign `high` when a clearly-matched skill must still be demoted;
-                # do NOT use it on broadly-matched skills (e.g. execute-*) or gap
-                # detection will fire on every invocation.
+    high: -30   # reserved tier: no current skill uses it. Assigned when a clearly-
+                # matched skill must still be demoted (e.g. destructive ops). Do NOT
+                # apply to broadly-matched skills or gap detection fires on every call.
 lifecycle:
   stale_after_days: 180
   overlap_threshold: 0.8

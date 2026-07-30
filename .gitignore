@@ -26,9 +26,11 @@ yarn-error.log*
 *.tmp
 .cache/
 
-# WorkBuddy / agent cache
-.workbuddy/cache/
-.workbuddy/scratch/
+# WorkBuddy / agent platform dirs — sync.py output, read-only consumers.
+# Never edit these; they are overwritten on next sync. See README "Sync workflow".
+.workbuddy/
+.codex/
+.hermes/
 
 # Skill development scratch (per-skill working drafts)
 domain/**/scratch/

@@ -1,6 +1,6 @@
 ---
 name: domain-entry
-description: "Overview of the 5 LLM-capability categories in the domain layer (Understanding / Generation / Retrieval / Execution / Decision). Use when the user wants to browse the skill library, asks \"what skills do you have\", or is uncertain which category fits their need."
+description: "Browse the skill registry. Use when the user asks \"what skills do you have\", wants to browse available skills, or is uncertain which skill fits their need. Lists skills from INDEX.yaml grouped by category."
 user-invocable: true
 risk_level: low
 category: meta
@@ -8,39 +8,40 @@ category: meta
 
 # Domain Entry (领域入口)
 
-5 LLM-capability categories. Use to browse the library or to understand which category a task belongs to.
+Browsing entrypoint for the skill registry. Lists skills from INDEX.yaml grouped by category.
 
 ## Categories
 
-| Category | Meaning | Use for |
-|---|---|---|
-| **Understanding** | Read input, parse context, recognize intent | \"Read this code and tell me what it does\" / \"Parse this JSON\" |
-| **Generation** | Produce output: code, documents, interface contracts, architecture, schemas, visual specifications | \"Write an API endpoint\" / \"Design an API\" / \"Design a system\" / \"Create a UI spec\" |
-| **Retrieval** | Find information, query data, call APIs (incl. analysis) | \"Search for X\" / \"Query the database\" / \"Analyze this data\" |
-| **Execution** | Run commands, manipulate files, invoke tools | \"Run the test suite\" / \"Deploy this\" |
-| **Decision** | Plan, choose, weigh tradeoffs (incl. analysis) | \"Should we invest in X?\" / \"Pick between A and B\" |
+The registry supports 5 LLM-capability categories (skills can be added via `importer.py` from external repos):
 
-Generation contains implementation-oriented skills (`generate-api`, `generate-doc`), design-oriented skills (`api-design`, `system-design`, `database-design`, `ui-design`, `ux-design`), and productivity-oriented skills forked from mattpocock/skills (`writing-great-skills`, `handoff`, `teach`). Design skills produce contracts and specifications; implementation skills turn specifications into artifacts; productivity skills support the user across sessions.
+| Category | Meaning | Current skills |
+|---|---|---|
+| **Understanding** | Read input, parse context, recognize intent | *(none — import as needed)* |
+| **Generation** | Produce output: code, documents, schemas, visual specs | `ui-design`, `ux-design` |
+| **Retrieval** | Find information, query data, call APIs | *(none — use MCP)* |
+| **Execution** | Run commands, manipulate files, invoke tools | *(none — platform-native)* |
+| **Decision** | Plan, choose, weigh tradeoffs | `decide-invest` |
+
+Most common skills (code understanding, RAG, bash/git execution) have better ecosystem equivalents in `obra/superpowers` or platform-native tooling. Import them with `installer import owner/repo` when needed. The 3 current seeds exist because no public equivalent covers their domain.
 
 ## Trigger
 
-- **Manual**: `/domain` to list all categories; `/domain <category>` to list skills in a category.
-- **Auto**: Distributor may call this when a user request is broad and needs category clarification.
+- **Manual**: `/domain` to list all skills; "what skills do you have" triggers this naturally.
+- **Auto**: Distributor may call this when a user request is broad and needs clarification.
 
 ## Procedure
 
-1. If user asks for a category overview: list skills in that category from INDEX.yaml.
-2. If user asks \"which category fits X\": analyze the task and recommend a primary category.
-3. If user picks a category, list skills; user picks a skill; route to it via Distributor.
+1. Read INDEX.yaml fresh (do not cache).
+2. List all registered skills grouped by category.
+3. If user asks "which skill fits X": analyze the task and recommend 1-2 specific skills.
+4. Routing to a specific skill still goes through Distributor (not directly from Domain-entry).
 
 ## Pitfalls
 
-- **Don't bypass Distributor**: Domain-entry is for browsing; actual routing should go through Distributor's risk-score + match logic.
-- **Category overlap**: Some tasks span multiple categories (e.g., \"Write a function and test it\" = Generation + Execution). Recommend the primary category; the secondary is implicit.
-- **Stale listings**: Always read INDEX.yaml fresh; do not cache category listings across sessions.
+- **Don't bypass Distributor**: Domain-entry is for browsing; actual routing goes through Distributor's score + risk logic.
+- **Stale listings**: always read INDEX.yaml fresh; skills may have been imported or retired since last session.
 
 ## Verification
 
-- A category listing must match INDEX.yaml (no orphaned entries).
-- A category recommendation should include 1-2 specific skills in that category.
-- Routing to a specific skill must still go through Distributor (not directly from Domain-entry).
+- A category listing must match INDEX.yaml (no orphaned entries, no missing skills).
+- Routing to a specific skill must still go through Distributor.
