@@ -1,4 +1,0 @@
-# Installer skip-list — skills excluded from `installer sync`.
-# Deployment policy lives here, not in the adapter logic (ADR-0002 purity).
-skip_list:
-  - decide-invest       # financial-decision guard; withhold from auto-deploy

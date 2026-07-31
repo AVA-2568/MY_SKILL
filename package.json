@@ -1,0 +1,25 @@
+{
+  "name": "my-skill",
+  "version": "1.0.0",
+  "description": "Personal TRAE AI agent skill library — 27 skills curated for TRAE IDE",
+  "bin": {
+    "my-skill": "./bin/install.js",
+    "install-skills": "./bin/install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AVA-2568/MY_SKILL.git"
+  },
+  "keywords": [
+    "trae",
+    "skills",
+    "ai-agent",
+    "skill-library",
+    "cursor",
+    "windsurf"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
