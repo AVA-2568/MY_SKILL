@@ -22,14 +22,14 @@
 
 ## npx 安装
 
-一键安装所有技能：
+没有硬编码路径，你决定技能装到哪里。
 
 ```bash
-# 安装所有技能到默认 TRAE 路径
+# 复制到 ./skills/（当前目录）
 npx github:AVA-2568/MY_SKILL
 
-# 安装到自定义目录
-npx github:AVA-2568/MY_SKILL --target /path/to/skills
+# 复制到自定义目录（比如你的 Agent 技能目录）
+npx github:AVA-2568/MY_SKILL --target /path/to/your/skills
 
 # 列出可用技能（不安装）
 npx github:AVA-2568/MY_SKILL --list
@@ -38,18 +38,18 @@ npx github:AVA-2568/MY_SKILL --list
 npx github:AVA-2568/MY_SKILL --help
 ```
 
-**默认安装路径：**
-- Windows：`%USERPROFILE%\.trae-cn\skills`
-- macOS/Linux：`~/.trae-cn/skills`
-
-安装完成后，**重启你的 AI Agent** 以加载新技能。
+**示例：**
+```bash
+npx github:AVA-2568/MY_SKILL --target ~/.trae-cn/skills
+npx github:AVA-2568/MY_SKILL --target ./my-awesome-skills
+```
 
 ### 手动安装
 
 ```bash
 git clone https://github.com/AVA-2568/MY_SKILL.git
 cd MY_SKILL
-node bin/install.js
+node bin/install.js --target ./my-skills
 ```
 
 ## 个人技能库声明
@@ -78,12 +78,9 @@ skills/<name>/
 ## 其他安装方式
 
 ```bash
-# 克隆并创建符号链接（适合开发）
-git clone https://github.com/AVA-2568/MY_SKILL.git ~/MY_SKILL
-ln -s ~/MY_SKILL/skills/* ~/.trae-cn/skills/
-
-# Python 一行命令（Windows）
-python -c "import shutil,pathlib;s=pathlib.Path(r'%USERPROFILE%\MY_SKILL\skills');[shutil.copytree(p,pathlib.Path(r'%USERPROFILE%\.trae-cn\skills')/p.name,dirs_exist_ok=True) for p in s.iterdir() if p.is_dir()]"
+# 克隆后手动复制
+git clone https://github.com/AVA-2568/MY_SKILL.git
+cp -r MY_SKILL/skills/* /your/target/skills/dir/
 ```
 
 ## 许可证

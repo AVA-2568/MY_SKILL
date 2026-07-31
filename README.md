@@ -22,14 +22,14 @@ A curated collection of **27 AI agent skills** extracted from my day-to-day TRAE
 
 ## npx Install
 
-The easiest way to install all skills:
+No hardcoded paths. You decide where skills go.
 
 ```bash
-# Install all skills to default TRAE path
+# Copy skills to ./skills/ (current directory)
 npx github:AVA-2568/MY_SKILL
 
-# Install to a custom directory
-npx github:AVA-2568/MY_SKILL --target /path/to/skills
+# Copy to a custom directory (e.g. your agent's skills folder)
+npx github:AVA-2568/MY_SKILL --target /path/to/your/skills
 
 # List available skills without installing
 npx github:AVA-2568/MY_SKILL --list
@@ -38,18 +38,18 @@ npx github:AVA-2568/MY_SKILL --list
 npx github:AVA-2568/MY_SKILL --help
 ```
 
-**Default install path:**
-- Windows: `%USERPROFILE%\.trae-cn\skills`
-- macOS/Linux: `~/.trae-cn/skills`
-
-After installation, **restart your AI agent** to load the new skills.
+**Examples:**
+```bash
+npx github:AVA-2568/MY_SKILL --target ~/.trae-cn/skills
+npx github:AVA-2568/MY_SKILL --target ./my-awesome-skills
+```
 
 ### Manual Install
 
 ```bash
 git clone https://github.com/AVA-2568/MY_SKILL.git
 cd MY_SKILL
-node bin/install.js
+node bin/install.js --target ./my-skills
 ```
 
 ## Personal Skill Library Declaration
@@ -78,12 +78,9 @@ See [INDEX.yaml](./INDEX.yaml) for the full skill registry.
 ## Other Install Methods
 
 ```bash
-# Clone and symlink (for development)
-git clone https://github.com/AVA-2568/MY_SKILL.git ~/MY_SKILL
-ln -s ~/MY_SKILL/skills/* ~/.trae-cn/skills/
-
-# Python one-liner (Windows)
-python -c "import shutil,pathlib;s=pathlib.Path(r'%USERPROFILE%\MY_SKILL\skills');[shutil.copytree(p,pathlib.Path(r'%USERPROFILE%\.trae-cn\skills')/p.name,dirs_exist_ok=True) for p in s.iterdir() if p.is_dir()]"
+# Clone and copy manually
+git clone https://github.com/AVA-2568/MY_SKILL.git
+cp -r MY_SKILL/skills/* /your/target/skills/dir/
 ```
 
 ## License

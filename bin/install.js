@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * MY_SKILL Installer — Install TRAE skills to your AI agent platform.
+ * MY_SKILL Installer — Copy skills to any directory you choose.
+ *
+ * No hardcoded paths. You decide where skills go.
  *
  * Usage:
- *   npx github:AVA-2568/MY_SKILL            # install to default platform
- *   npx github:AVA-2568/MY_SKILL --target  ./.trae-cn/skills   # custom target
- *   npx github:AVA-2568/MY_SKILL --list     # list all available skills
- *   npx github:AVA-2568/MY_SKILL --help     # show help
+ *   npx github:AVA-2568/MY_SKILL              # copy to current directory (./skills/)
+ *   npx github:AVA-2568/MY_SKILL --target DIR # copy to custom directory
+ *   npx github:AVA-2568/MY_SKILL --list       # list all available skills
+ *   npx github:AVA-2568/MY_SKILL --help       # show help
  */
 
 const fs = require("fs");
@@ -15,12 +17,6 @@ const path = require("path");
 
 const SKILLS_DIR = path.join(__dirname, "..", "skills");
 const INDEX_PATH = path.join(__dirname, "..", "INDEX.yaml");
-
-function getTargetDir() {
-  // Default: TRAE skills directory
-  const home = process.env.USERPROFILE || process.env.HOME;
-  return path.join(home, ".trae-cn", "skills");
-}
 
 function listSkills() {
   const items = fs.readdirSync(SKILLS_DIR, { withFileTypes: true });
@@ -40,7 +36,8 @@ function listSkills() {
 }
 
 function installSkills(targetDir) {
-  if (!targetDir) targetDir = getTargetDir();
+  // Default: current working directory, create a skills/ subfolder
+  if (!targetDir) targetDir = path.join(process.cwd(), "skills");
 
   if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
@@ -56,26 +53,23 @@ function installSkills(targetDir) {
     const src = path.join(SKILLS_DIR, name);
     const dst = path.join(targetDir, name);
 
-    // Remove existing
     if (fs.existsSync(dst)) {
       fs.rmSync(dst, { recursive: true, force: true });
     }
 
-    // Copy recursively
     copyDirSync(src, dst);
     copied++;
     console.log(`  ✅ ${name}`);
   });
 
-  // Copy INDEX.yaml
+  // Copy INDEX.yaml alongside skills
   if (fs.existsSync(INDEX_PATH)) {
     const idxDst = path.join(targetDir, "..", "INDEX.yaml");
     fs.copyFileSync(INDEX_PATH, idxDst);
     console.log(`  ✅ INDEX.yaml`);
   }
 
-  console.log(`\n  ✨ Done! ${copied} skills installed.\n`);
-  console.log(`  💡 Restart your AI agent to load the new skills.\n`);
+  console.log(`\n  ✨ Done! ${copied} skills copied to: ${targetDir}\n`);
 }
 
 function copyDirSync(src, dst) {
@@ -94,19 +88,20 @@ function copyDirSync(src, dst) {
 
 function printHelp() {
   console.log(`
-  MY_SKILL — Personal TRAE Skill Library
+  MY_SKILL — Personal Skill Library
+
+  No hardcoded paths. You decide where skills go.
 
   Usage:
-    npx github:AVA-2568/MY_SKILL              Install all skills to default path
-    npx github:AVA-2568/MY_SKILL --list        List available skills
-    npx github:AVA-2568/MY_SKILL --target DIR  Install to custom directory
-    npx github:AVA-2568/MY_SKILL --help        Show this help
+    npx github:AVA-2568/MY_SKILL                  Copy skills to ./skills/ (current dir)
+    npx github:AVA-2568/MY_SKILL --target <DIR>   Copy to a custom directory
+    npx github:AVA-2568/MY_SKILL --list            List available skills
+    npx github:AVA-2568/MY_SKILL --help            Show this help
 
-  Default install path:
-    Windows: %USERPROFILE%\\\\.trae-cn\\\\skills
-    macOS/Linux: ~/.trae-cn/skills
-
-  After install, restart your AI agent to load the new skills.
+  Examples:
+    npx github:AVA-2568/MY_SKILL
+    npx github:AVA-2568/MY_SKILL --target ~/.trae-cn/skills
+    npx github:AVA-2568/MY_SKILL --target ./my-skills
   `);
 }
 
