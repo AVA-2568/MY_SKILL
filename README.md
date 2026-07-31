@@ -2,7 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Skills](https://img.shields.io/badge/skills-27-blue)](./INDEX.yaml)
-[![npm](https://img.shields.io/badge/npx-install-brightgreen)](https://github.com/AVA-2568/MY_SKILL)
 
 # MY_SKILL — Personal TRAE Skill Library
 
@@ -20,36 +19,21 @@ A curated collection of **27 AI agent skills** extracted from my day-to-day TRAE
 | **Education** | `teach` |
 | **Utility** | `defuddle`, `find-skills`, `json-canvas`, `obsidian-bases`, `obsidian-cli`, `obsidian-markdown`, `skill-creator` |
 
-## npx Install
-
-No hardcoded paths. You decide where skills go.
+## Install
 
 ```bash
-# Copy skills to ./skills/ (current directory)
-npx github:AVA-2568/MY_SKILL
+# Install all 27 skills
+npx skills add AVA-2568/MY_SKILL
 
-# Copy to a custom directory (e.g. your agent's skills folder)
-npx github:AVA-2568/MY_SKILL --target /path/to/your/skills
-
-# List available skills without installing
-npx github:AVA-2568/MY_SKILL --list
-
-# Show help
-npx github:AVA-2568/MY_SKILL --help
-```
-
-**Examples:**
-```bash
-npx github:AVA-2568/MY_SKILL --target ~/.trae-cn/skills
-npx github:AVA-2568/MY_SKILL --target ./my-awesome-skills
+# Install a specific skill
+npx skills add AVA-2568/MY_SKILL@skill-name
 ```
 
 ### Manual Install
 
 ```bash
 git clone https://github.com/AVA-2568/MY_SKILL.git
-cd MY_SKILL
-node bin/install.js --target ./my-skills
+cp -r MY_SKILL/skills/* /path/to/your/skills/dir/
 ```
 
 ## Personal Skill Library Declaration
@@ -62,8 +46,6 @@ node bin/install.js --target ./my-skills
 
 ## Skill Format
 
-Each skill lives in `skills/<name>/` and contains:
-
 ```
 skills/<name>/
 ├── SKILL.md          # Skill definition (required)
@@ -74,14 +56,6 @@ skills/<name>/
 ```
 
 See [INDEX.yaml](./INDEX.yaml) for the full skill registry.
-
-## Other Install Methods
-
-```bash
-# Clone and copy manually
-git clone https://github.com/AVA-2568/MY_SKILL.git
-cp -r MY_SKILL/skills/* /your/target/skills/dir/
-```
 
 ## License
 

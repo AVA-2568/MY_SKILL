@@ -2,7 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Skills](https://img.shields.io/badge/skills-27-blue)](./INDEX.yaml)
-[![npm](https://img.shields.io/badge/npx-install-brightgreen)](https://github.com/AVA-2568/MY_SKILL)
 
 # MY_SKILL — 个人 TRAE 技能库
 
@@ -20,36 +19,21 @@
 | **教育** | `teach` |
 | **工具** | `defuddle`、`find-skills`、`json-canvas`、`obsidian-bases`、`obsidian-cli`、`obsidian-markdown`、`skill-creator` |
 
-## npx 安装
-
-没有硬编码路径，你决定技能装到哪里。
+## 安装
 
 ```bash
-# 复制到 ./skills/（当前目录）
-npx github:AVA-2568/MY_SKILL
+# 安装全部 27 个技能
+npx skills add AVA-2568/MY_SKILL
 
-# 复制到自定义目录（比如你的 Agent 技能目录）
-npx github:AVA-2568/MY_SKILL --target /path/to/your/skills
-
-# 列出可用技能（不安装）
-npx github:AVA-2568/MY_SKILL --list
-
-# 查看帮助
-npx github:AVA-2568/MY_SKILL --help
-```
-
-**示例：**
-```bash
-npx github:AVA-2568/MY_SKILL --target ~/.trae-cn/skills
-npx github:AVA-2568/MY_SKILL --target ./my-awesome-skills
+# 安装指定技能
+npx skills add AVA-2568/MY_SKILL@skill-name
 ```
 
 ### 手动安装
 
 ```bash
 git clone https://github.com/AVA-2568/MY_SKILL.git
-cd MY_SKILL
-node bin/install.js --target ./my-skills
+cp -r MY_SKILL/skills/* /path/to/your/skills/dir/
 ```
 
 ## 个人技能库声明
@@ -62,8 +46,6 @@ node bin/install.js --target ./my-skills
 
 ## 技能格式
 
-每个技能存放在 `skills/<name>/` 目录下：
-
 ```
 skills/<name>/
 ├── SKILL.md          # 技能定义（必需）
@@ -74,14 +56,6 @@ skills/<name>/
 ```
 
 详见 [INDEX.yaml](./INDEX.yaml) 完整技能注册表。
-
-## 其他安装方式
-
-```bash
-# 克隆后手动复制
-git clone https://github.com/AVA-2568/MY_SKILL.git
-cp -r MY_SKILL/skills/* /your/target/skills/dir/
-```
 
 ## 许可证
 
