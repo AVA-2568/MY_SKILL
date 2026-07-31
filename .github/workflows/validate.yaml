@@ -99,3 +99,22 @@ jobs:
         run: python -m pip install --quiet pyyaml
       - name: Test routing precision
         run: python meta/distributor/scripts/score.py --test tests/fixtures/route-cases.yaml
+
+  sync-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install PyYAML
+        run: python -m pip install --quiet pyyaml
+      - name: Smoke-test sync.py (dry-run, all 3 adapters)
+        run: |
+          mkdir -p /tmp/sync-out
+          for p in workbuddy codex hermes; do
+            echo "=== adapter: $p ==="
+            python meta/installer/scripts/sync.py --platform $p --target /tmp/sync-out/$p --dry-run
+          done

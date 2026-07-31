@@ -165,6 +165,9 @@ curl -fsSL https://raw.githubusercontent.com/AVA-2568/MY_SKILL/main/meta/install
 bash meta/installer/scripts/install.sh
 ```
 
+> **Windows**: use Git Bash (ships with Git for Windows) to run `install.sh`.
+> Without Git Bash, run `sync.py` directly — see [docs/INSTALL.md](./docs/INSTALL.md#manual-fallback-no-agent-available).
+
 ### Import skills from any repo
 
 ```bash

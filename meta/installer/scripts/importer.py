@@ -14,7 +14,7 @@ and registers in INDEX.yaml. Source-agnostic: works with any repo that
 follows the SKILL.md convention (obra/superpowers, mattpocock/skills, etc.).
 """
 
-import sys, os, json, re, urllib.request, urllib.error, yaml
+import sys, os, json, re, argparse, urllib.request, urllib.error, yaml
 from pathlib import Path
 from datetime import date
 
@@ -205,45 +205,34 @@ def import_from_local(local_path, category=None, name=None):
 # ── CLI ───────────────────────────────────────────────────────────────
 
 def main():
-    if len(sys.argv) < 2:
-        print(
-            "Skill importer — pull skills from GitHub repos or local paths.\n\n"
-            "Usage:\n"
-            "  python importer.py owner/repo                  # scan repo for SKILL.md\n"
-            "  python importer.py owner/repo/path/to/skill    # specific path in repo\n"
-            "  python importer.py --local /path/to/skill      # from local directory\n\n"
-            "Options:\n"
-            "  --category <cat>   override skill category (default: from frontmatter)\n"
-            "  --name <name>      override skill name (default: from frontmatter)\n"
-            "  --ref <branch>     GitHub branch/tag (default: main)\n",
-            file=sys.stderr
-        )
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Skill importer — pull skills from GitHub repos or local paths.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""\
+Examples:
+  python importer.py owner/repo                  # scan repo for SKILL.md
+  python importer.py owner/repo/path/to/skill    # specific path in repo
+  python importer.py --local /path/to/skill      # from local directory
+""",
+    )
+    parser.add_argument("spec", nargs="?", default=None,
+                        help="GitHub spec: owner/repo or owner/repo/path/to/skill")
+    parser.add_argument("--local", default=None,
+                        help="Import from local directory instead of GitHub")
+    parser.add_argument("--category", default=None,
+                        help="Override skill category (default: from frontmatter)")
+    parser.add_argument("--name", default=None,
+                        help="Override skill name (default: from frontmatter)")
+    parser.add_argument("--ref", default="main",
+                        help="GitHub branch/tag (default: main)")
+    args = parser.parse_args()
 
-    args = sys.argv[1:]
-    category = name = ref = None
-    local_path = spec = None
-
-    i = 0
-    while i < len(args):
-        if args[i] == "--local":
-            local_path = args[i + 1]; i += 2
-        elif args[i] == "--category":
-            category = args[i + 1]; i += 2
-        elif args[i] == "--name":
-            name = args[i + 1]; i += 2
-        elif args[i] == "--ref":
-            ref = args[i + 1]; i += 2
-        else:
-            spec = args[i]; i += 1
-
-    if local_path:
-        import_from_local(local_path, category, name)
-    elif spec:
-        import_from_github(spec, category, name, ref or "main")
+    if args.local:
+        import_from_local(args.local, args.category, args.name)
+    elif args.spec:
+        import_from_github(args.spec, args.category, args.name, args.ref)
     else:
-        print("ERROR: provide a GitHub spec (owner/repo) or --local <path>", file=sys.stderr)
-        sys.exit(1)
+        parser.error("provide a GitHub spec (owner/repo) or --local <path>")
 
 
 if __name__ == "__main__":

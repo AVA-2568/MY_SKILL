@@ -220,7 +220,9 @@ def score_all(task_tokens, raw_tokens, index, desc_map):
             "composite": round(composite, 1),
             "path": skill["path"],
         })
-    results.sort(key=lambda x: (x["match_score"], x["composite"]), reverse=True)
+    # Sort by composite (match + risk_penalty + keyword boost) so risk_penalty
+    # actually demotes high-risk skills. Ties break on raw match_score.
+    results.sort(key=lambda x: (x["composite"], x["match_score"]), reverse=True)
 
     # Filter out zero-match skills from top results for cleaner output
     # (gap detection still works: if top result has composite < threshold, gap=True)

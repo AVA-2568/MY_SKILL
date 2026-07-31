@@ -3,16 +3,12 @@
 meta/ + domain/ folder hierarchy.
 
 Why a second script (vs. sync.py)?
-    sync.py flattens skills into <target>/<name>/ and, critically, converts
-    `user-invocable: false` -> `disable-model-invocation: true`. That conversion
-    is WRONG for WorkBuddy: disable-model-invocation:true prevents the AI from
-    auto-selecting the skill, which would break Distributor's internal use of
-    user-invocable:false skills (review/...). WorkBuddy's native
-    `user-invocable: false` already means "hidden from /slash menu but
-    callable by the AI / other skills" — exactly what MY_SKILL needs.
+    sync.py flattens skills into <target>/<name>/. sync_nested.py keeps the
+    full directory tree (<target>/MY_SKILL/<rel>/) — useful when you want to
+    browse the repo layout inside the platform's skills directory.
 
-    sync_nested.py keeps the full directory tree
-    (<target>/MY_SKILL/<rel>/) and PRESERVES `user-invocable` as-is.
+    Both scripts now share the same adapter dispatching via common.py, so
+    field translation (workbuddy/codex/hermes) is consistent between them.
 
 Usage:
     # dry-run preview (no writes)
@@ -27,84 +23,21 @@ Usage:
 Safe to re-run: overwrites in place, never deletes dst contents.
 """
 
-import os
-import shutil
 import argparse
-import yaml
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-INDEX = REPO_ROOT / "meta" / "distributor" / "INDEX.yaml"
-SKIP_CONFIG = REPO_ROOT / "meta" / "installer" / "skip.yaml"
+# All shared logic lives in common.py — edit adapter rules there.
+from common import (
+    REPO_ROOT, load_skip_list, load_index,
+    parse_skill_md, serialize_skill_md, copytree_overwrite, apply_adapter,
+)
+
 DEFAULT_TARGET = Path.home() / ".workbuddy" / "skills" / "MY_SKILL"
-
-# Deployment policy lives in skip.yaml (ADR-0002 purity), not in adapter logic.
-DEFAULT_SKIP_LIST = {"decide-invest"}
-
-# MY_SKILL-only extension fields with no WorkBuddy equivalent. Stripped on install.
-# NOTE: `user-invocable` is intentionally NOT in this list — it is a WorkBuddy
-# native field (hide from menu / callable internally) and must be preserved.
-STRIP_FIELDS = [
-    "risk_level", "category", "horizontal", "always_active",
-    "source", "data_layer", "related", "forced_trigger",
-]
+DEFAULT_ADAPTER = "workbuddy"  # nested install is WorkBuddy-specific by convention
 
 
-def load_skip_list():
-    if not SKIP_CONFIG.exists():
-        return set(DEFAULT_SKIP_LIST)
-    with open(SKIP_CONFIG, encoding="utf-8") as f:
-        cfg = yaml.safe_load(f) or {}
-    return set(cfg.get("skip_list", DEFAULT_SKIP_LIST))
-
-
-def _copytree_overwrite(src, dst):
-    """Copy src tree into dst, overwriting files in place. Never deletes dst
-    contents — avoids bulk-delete gates and is safe for incremental updates."""
-    for item in src.rglob("*"):
-        if item.is_file():
-            rel = item.relative_to(src)
-            target = dst / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, target)
-
-
-def apply_nested_adapter(fm, body, index_entry):
-    """Translate a MY_SKILL SKILL.md for nested install.
-
-    - Folds risk_level (from SKILL.md, falling back to INDEX.yaml) into the
-      description as `[risk=...]` when non-low.
-    - Folds `source` attribution into the description when present.
-    - PRESERVES `user-invocable` exactly (no disable-model-invocation swap).
-    - Strips MY_SKILL-only extension fields (STRIP_FIELDS).
-    """
-    fm = dict(fm)
-    idx = index_entry or {}
-
-    # 1) risk -> description tag (fallback to INDEX so drift in SKILL.md is covered)
-    risk = str(fm.get("risk_level") or idx.get("risk_level") or "low").lower()
-    desc = fm.get("description", "") or ""
-    if risk != "low" and f"risk={risk}" not in desc.lower():
-        desc = f"{desc} [risk={risk}]"
-
-    # 2) source attribution -> description (preserve credit, strip the raw field)
-    src = fm.get("source") or idx.get("source")
-    if src and "source:" not in desc.lower() and "来源" not in desc:
-        desc = f"{desc} (source: {src})"
-
-    if desc:
-        fm["description"] = desc
-
-    # 3) strip MY_SKILL-only fields (user-invocable stays)
-    for key in STRIP_FIELDS:
-        fm.pop(key, None)
-
-    return fm, body
-
-
-def sync(target_dir, dry_run=False, force=False):
-    with open(INDEX, encoding="utf-8") as f:
-        index = yaml.safe_load(f)
+def sync(target_dir, adapter_name=DEFAULT_ADAPTER, dry_run=False, force=False):
+    index = load_index()
     skip_list = load_skip_list()
     target = Path(target_dir).expanduser().resolve()
     target.mkdir(parents=True, exist_ok=True)
@@ -128,18 +61,10 @@ def sync(target_dir, dry_run=False, force=False):
             continue
 
         text = skill_md_src.read_text(encoding="utf-8")
-        if not text.startswith("---"):
-            skipped.append((name, "no frontmatter"))
-            print(f"SKIP {name}: SKILL.md has no frontmatter")
-            continue
+        fm, body = parse_skill_md(text)
 
-        fm_end = text.index("---", 3)
-        fm_raw = text[4:fm_end].strip()
-        fm = yaml.safe_load(fm_raw) or {}
-        body = text[fm_end + 3:].lstrip()
-
-        new_fm, body = apply_nested_adapter(fm, body, index_by_name.get(name))
-        new_text = "---\n" + yaml.dump(new_fm, allow_unicode=True, sort_keys=False) + "---\n\n" + body
+        new_fm, body = apply_adapter(adapter_name, fm, body, index_by_name.get(name))
+        new_text = serialize_skill_md(new_fm, body)
 
         # Nested path preserves the meta/ + domain/ hierarchy.
         dest_dir = target / skill["path"]
@@ -157,7 +82,7 @@ def sync(target_dir, dry_run=False, force=False):
         if dry_run:
             print(f"DRY-RUN: would write {dest_dir}")
         else:
-            _copytree_overwrite(skill_src, dest_dir)
+            copytree_overwrite(skill_src, dest_dir)
             (dest_dir / "SKILL.md").write_text(new_text, encoding="utf-8")
             print(f"OK: {name} → {dest_dir}")
         installed.append(name)
@@ -175,11 +100,13 @@ def main():
     parser = argparse.ArgumentParser(description="Nested-install MY_SKILL into WorkBuddy (preserves tree)")
     parser.add_argument("--target", default=str(DEFAULT_TARGET),
                         help="Destination skills dir (default: ~/.workbuddy/skills/MY_SKILL)")
+    parser.add_argument("--platform", default=DEFAULT_ADAPTER, choices=["workbuddy", "codex", "hermes"],
+                        help="Adapter to use (default: workbuddy)")
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no writes")
     parser.add_argument("--force", action="store_true",
                         help="Overwrite existing skills AND install skip-list skills")
     args = parser.parse_args()
-    sync(args.target, args.dry_run, args.force)
+    sync(args.target, args.platform, args.dry_run, args.force)
 
 
 if __name__ == "__main__":

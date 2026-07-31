@@ -3,37 +3,26 @@
 
 Usage:
     python sync.py --auto-detect                          # detect platform, install
-    python sync.py --target ~/.workbuddy/skills/          # explicit target
+    python sync.py --target ~/.workbuddy/skills/          # explicit target (workbuddy)
+    python sync.py --platform codex --target ~/.codex/skills/  # explicit platform
     python sync.py --auto-detect --dry-run                # preview only
     python sync.py --target /path --force                 # overwrite existing
 
-Reads INDEX.yaml, applies platform adapter rules (workbuddy / codex / hermes),
+Reads INDEX.yaml, applies the per-platform adapter (workbuddy / codex / hermes),
 writes platform-ready SKILL.md files under <target>/<skill-name>/.
 
 Platform directory is a read-only consumer. Edit skills only in the MY_SKILL
 repo (canonical source); re-run sync to propagate changes.
 """
 
-import sys, yaml, shutil, argparse, os
+import sys, os, argparse
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-INDEX = REPO_ROOT / "meta" / "distributor" / "INDEX.yaml"
-SKIP_CONFIG = REPO_ROOT / "meta" / "installer" / "skip.yaml"
-
-# Skills to skip during sync (overlap/conflict with user's existing skills).
-# Loaded from meta/installer/skip.yaml; falls back to this set if the file is
-# missing so sync.py never breaks on a bare checkout.
-DEFAULT_SKIP_LIST = {"decide-invest"}
-
-# MY_SKILL-only extension fields with no platform equivalent. Stripped on install.
-# NOTE: `user-invocable` is intentionally NOT in this list — it is a WorkBuddy
-# native field (hide from menu / callable internally) and must be preserved.
-# Kept in sync with sync_nested.py.STRIP_FIELDS.
-STRIP_FIELDS = [
-    "risk_level", "category", "horizontal", "always_active",
-    "source", "data_layer", "related", "forced_trigger",
-]
+# All shared logic lives in common.py — edit adapter rules there.
+from common import (
+    REPO_ROOT, INDEX, load_skip_list, load_index,
+    parse_skill_md, serialize_skill_md, copytree_overwrite, apply_adapter,
+)
 
 # Platform detection table — order matters: first match wins.
 # `detect` is a sentinel file/dir whose presence indicates the platform is
@@ -69,61 +58,8 @@ def detect_platform():
     return None, None, None
 
 
-def load_skip_list():
-    if not SKIP_CONFIG.exists():
-        return set(DEFAULT_SKIP_LIST)
-    with open(SKIP_CONFIG, encoding="utf-8") as f:
-        cfg = yaml.safe_load(f) or {}
-    return set(cfg.get("skip_list", DEFAULT_SKIP_LIST))
-
-
-def _copytree_overwrite(src, dst):
-    """Copy src tree into dst, overwriting files in place. Never deletes dst
-    contents — avoids bulk-delete gates and is safe for incremental updates."""
-    for item in src.rglob("*"):
-        if item.is_file():
-            rel = item.relative_to(src)
-            target = dst / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, target)
-
-
-def apply_workbuddy_adapter(frontmatter, body, index_entry=None):
-    """Translate extension fields per workbuddy.yaml rules.
-
-    - Folds risk_level (from SKILL.md, falling back to INDEX.yaml) into the
-      description as `[risk=...]` when non-low.
-    - Folds `source` attribution into the description when present.
-    - PRESERVES `user-invocable` exactly (no disable-model-invocation swap).
-    - Strips MY_SKILL-only extension fields (STRIP_FIELDS).
-    Kept in sync with sync_nested.py.apply_nested_adapter.
-    """
-    fm = dict(frontmatter)
-    idx = index_entry or {}
-
-    # 1) risk -> description tag (fallback to INDEX so drift in SKILL.md is covered)
-    risk = str(fm.get("risk_level") or idx.get("risk_level") or "low").lower()
-    desc = fm.get("description", "") or ""
-    if risk != "low" and f"risk={risk}" not in desc.lower():
-        desc = f"{desc} [risk={risk}]"
-
-    # 2) source attribution -> description (preserve credit, strip the raw field)
-    src = fm.get("source") or idx.get("source")
-    if src and "source:" not in desc.lower() and "来源" not in desc:
-        desc = f"{desc} (source: {src})"
-
-    if desc:
-        fm["description"] = desc
-
-    # 3) strip MY_SKILL-only fields (user-invocable stays)
-    for key in STRIP_FIELDS:
-        fm.pop(key, None)
-    return fm, body
-
-
-def sync(target_dir, dry_run=False, force=False):
-    with open(INDEX, encoding="utf-8") as f:
-        index = yaml.safe_load(f)
+def sync(target_dir, adapter_name, dry_run=False, force=False):
+    index = load_index()
     skip_list = load_skip_list()
     target = Path(target_dir).expanduser().resolve()
     os.makedirs(target, exist_ok=True)
@@ -144,13 +80,11 @@ def sync(target_dir, dry_run=False, force=False):
             continue
 
         text = skill_md_src.read_text(encoding="utf-8")
-        fm_end = text.index("---", 3)
-        fm_raw = text[4:fm_end].strip()
-        fm = yaml.safe_load(fm_raw) or {}
-        body = text[fm_end + 3:].lstrip()
+        fm, body = parse_skill_md(text)
 
-        new_fm, body = apply_workbuddy_adapter(fm, body, index_by_name.get(name))
-        new_text = "---\n" + yaml.dump(new_fm, allow_unicode=True, sort_keys=False) + "---\n\n" + body
+        # Dispatch to the platform-specific adapter (workbuddy / codex / hermes).
+        new_fm, body = apply_adapter(adapter_name, fm, body, index_by_name.get(name))
+        new_text = serialize_skill_md(new_fm, body)
 
         dest_dir = target / name
 
@@ -166,7 +100,7 @@ def sync(target_dir, dry_run=False, force=False):
         if dry_run:
             print(f"DRY-RUN: would write {dest_dir}")
         else:
-            _copytree_overwrite(skill_src, dest_dir)
+            copytree_overwrite(skill_src, dest_dir)
             (dest_dir / "SKILL.md").write_text(new_text, encoding="utf-8")
             print(f"OK: {name} → {dest_dir}")
 
@@ -177,15 +111,19 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 Examples:
-  python sync.py --auto-detect                    # detect platform, install
-  python sync.py --target ~/.workbuddy/skills/    # explicit target
-  python sync.py --auto-detect --dry-run          # preview only
-  python sync.py --target /path --force           # overwrite existing
+  python sync.py --auto-detect                          # detect platform, install
+  python sync.py --target ~/.workbuddy/skills/          # explicit target
+  python sync.py --platform codex --target ~/.codex/skills/  # explicit platform
+  python sync.py --auto-detect --dry-run                # preview only
+  python sync.py --target /path --force                 # overwrite existing
 """,
     )
     parser.add_argument("--target", default=None,
                         help="Platform skills directory (e.g. ~/.workbuddy/skills/). "
                              "If omitted with --auto-detect, will be filled in.")
+    parser.add_argument("--platform", default=None, choices=["workbuddy", "codex", "hermes"],
+                        help="Explicit platform. If omitted, inferred from --target path "
+                             "or auto-detected.")
     parser.add_argument("--auto-detect", action="store_true",
                         help="Auto-detect installed platform and target directory.")
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no writes")
@@ -193,9 +131,10 @@ Examples:
     args = parser.parse_args()
 
     target = args.target
+    adapter_name = args.platform
 
     if args.auto_detect:
-        name, detected_target, adapter = detect_platform()
+        name, detected_target, detected_adapter = detect_platform()
         if name is None:
             print("ERROR: no supported platform detected. "
                   "Looked for: " + ", ".join(p["name"] for p in PLATFORMS),
@@ -205,13 +144,27 @@ Examples:
             sys.exit(1)
         if target is None:
             target = str(detected_target)
+        if adapter_name is None:
+            adapter_name = detected_adapter
         print(f"Detected platform: {name}")
         print(f"Target directory:  {target}")
+
+    # Infer adapter from target path if only --target was given.
+    if adapter_name is None and target:
+        for p in PLATFORMS:
+            if f".{p['name']}" in str(target):
+                adapter_name = p["adapter"]
+                break
+    if adapter_name is None:
+        adapter_name = "workbuddy"  # safe fallback
 
     if not target:
         parser.error("either --target or --auto-detect is required")
 
-    sync(target, args.dry_run, args.force)
+    if adapter_name != "workbuddy":
+        print(f"Using adapter: {adapter_name}")
+
+    sync(target, adapter_name, args.dry_run, args.force)
 
 
 if __name__ == "__main__":

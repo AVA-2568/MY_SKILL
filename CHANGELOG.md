@@ -69,8 +69,48 @@ GitHub-based sync workflow — one-shot install on any new machine.
 
 This model needs **no "denormalization"** — editing always happens in the repo, so the repo stays clean.
 
+## [v0.2.2] - 2026-07-31
+
+Sync adapter dispatching + scoring/CI fixes. Closes the gap between the
+"3-platform" claim in docs and the previous reality (sync.py only applied
+the WorkBuddy adapter regardless of `--platform`).
+
+### Added
+- **`common.py`** — shared module for sync.py + sync_nested.py. Houses the
+  per-platform adapter dispatch table (`apply_workbuddy_adapter` /
+  `apply_codex_adapter` / `apply_hermes_adapter`), frontmatter parser,
+  index/skip-list loaders, and `copytree_overwrite`. One place to edit
+  adapter rules.
+- **`sync.py --platform`** flag — explicit adapter selection
+  (`workbuddy` / `codex` / `hermes`). Falls back to inferring from `--target`
+  path, then to `workbuddy`.
+- **CI: `sync-smoke` job** — runs `sync.py --dry-run` across all 3 adapters
+  on every push/PR, so a broken adapter or INDEX drift fails CI.
+
+### Fixed
+- **`sync.py` applied WorkBuddy adapter for all platforms** (S1) — codex/hermes
+  were advertised but never dispatched. Now `apply_adapter(name, ...)` routes
+  to the right translator; codex translates `user-invocable: false` →
+  `disable-model-invocation: true`, hermes encodes it in description.
+- **`score.py` sort key made `risk_penalty` ineffective** (A2) — sorted by
+  raw `match_score` with `composite` as tiebreak, so a mid-risk skill with
+  high match still beat a low-risk skill. Now sorts by `composite`
+  (match + risk_penalty + keyword boost); `match_score` is the tiebreak.
+- **`sync.py` frontmatter parse was fragile** (A4) — used `str.index("---", 3)`
+  which breaks if `---` appears inside a description. Now uses the same regex
+  as importer.py / score.py via `common.parse_skill_md`.
+- **`sync.py` ↔ `sync_nested.py` duplication** (A3) — ~80% of the code was
+  duplicated between the two scripts. Both now import from `common.py`.
+- **`importer.py` hand-rolled arg parsing** (B5) — replaced while-loop parser
+  with `argparse` for consistent `--help`, error messages, and validation.
+
+### Changed
+- `sync_nested.py` now accepts `--platform` (default `workbuddy`); shares
+  adapter logic with sync.py.
+- README (EN + zh-CN) added a Windows note for `install.sh` (use Git Bash,
+  or fall back to `sync.py`).
+
 ## [Unreleased]
 
-- **Adapter expansion**: port `sync.py` to more platforms (Claude Code, Cursor, Gemini CLI) to match superpowers' platform coverage.
 - **Discoverability self-check**: automated test that verifies the model can "see" all installed skills after session-start injection.
 - **Reflection Gate implementation**: codify Review's "routed but skipped" detection as a concrete check, not just a procedure.
